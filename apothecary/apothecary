@@ -49,7 +49,7 @@ BUILD_DEPENDENCIES=1
 HOST_OS= # compile os ("osx", "windows", "linux")
 # library build type ("osx", "ios", "vs", etc)
 if [ -z "${TYPE+x}" ]; then
-    echo "No TYPE argument provided."
+    #echo "No TYPE argument provided."
     TYPE=
 else
     echo "TYPE : $TYPE"
@@ -100,15 +100,18 @@ if [ "$(${APOTHECARY_DIR}/ostype.sh)" == "osx" ]; then
     IOS_LATEST_SDK="xcrun -sdk iphoneos --show-sdk-version" # stupid hack to keep my syntax highlighting from breaking :P
     IOS_SDK_VER=17.0
     IOS_MIN_SDK_VER=15.0
+    TVOS_MIN_SDK_VER=13.0
+    XROS_MIN_SDK_VER=1.1
+    WATCHOS_MIN_SDK_VER=6.0
 
-if ! which realpath >&/dev/null; then
-  if ! which brew >&/dev/null; then
-    msg="ERROR: This script requires brew. See https://brew.sh for installation instructions."
-    echo "$(tput setaf 1)$msg$(tput sgr0)" >&2
-    exit 1
-  fi
-  echo "Installing coreutils/realpath"
-  brew install coreutils >&/dev/null
+    if ! which realpath >&/dev/null; then
+      if ! which brew >&/dev/null; then
+        msg="ERROR: This script requires brew. See https://brew.sh for installation instructions."
+        echo "$(tput setaf 1)$msg$(tput sgr0)" >&2
+        exit 1
+    fi
+    echo "Installing coreutils/realpath"
+    brew install coreutils >&/dev/null
 fi
 
 thisDir=$( dirname "`realpath "$0"`" )
@@ -531,14 +534,16 @@ if [ "$TYPE" = "vs" ]; then
     if [ $VS_COMPILER == "LLVM" ]; then
         export VS_C_FLAGS="-Wno-error" # warnings will not be treated as errors
         export EXCEPTION_FLAGS="-fexceptions"
+        export FLAGS_RELEASE="-O3"
+        export FLAGS_DEBUG="-O0"
     else
         if [ $ARCH == "arm64ec" ]; then              
             export VS_C_FLAGS="/Gy /GL- /guard:cf"
         else
             export VS_C_FLAGS="/GL-"
         fi
-        export FLAGS_RELEASE="${MT_TYPE} ${CALLING_CONVENTION} -O3"
-        export FLAGS_DEBUG="${MT_TYPE}d ${CALLING_CONVENTION}"
+        export FLAGS_RELEASE="${MT_TYPE} ${CALLING_CONVENTION} /O2"
+        export FLAGS_DEBUG="${MT_TYPE}d ${CALLING_CONVENTION} /Od"
         export EXCEPTION_FLAGS="/EHsc"
     fi
 
@@ -608,6 +613,9 @@ if [ "$TYPE" = "vs" ]; then
         BUILD_PLATFORM="arm64"
     elif [ $ARCH == "arm" ]; then
         BUILD_PLATFORM="arm"
+    else
+        echoError "Apothecary -a not a valid passed architecture:[${ARCH}]"
+        exit;
     fi 
     if [ $ARCH == 32 ] ; then
         PLATFORM="Win32"
@@ -2071,7 +2079,6 @@ DEPENDS_FORMULA_DIR=$FORMULAS_DIR/$DEPENDS_SUBDIR
 BUILD_ROOT_DIR=$BUILD_DIR/$BUILDROOT_SUBDIR
 
 # set for android sdk info
-# set for android sdk info
 if [[ "$TYPE" == "android" ]] ; then
 	if [[ -e ${APOTHECARY_DIR}/paths.make ]] ; then
 		source ${APOTHECARY_DIR}/paths.make
@@ -2105,6 +2112,23 @@ if [[ "$TYPE" == "android" ]] ; then
     PLATFORM=ABI
 else 
 	ABI=""
+fi
+
+if [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
+    if [[ "$TYPE" =~ ^(ios|catos)$ ]]; then
+        export MIN_SDK_VER=${IOS_MIN_SDK_VER}
+    elif [[ "$TYPE" =~ ^(osx)$ ]]; then
+        export MIN_SDK_VER=${OSX_MIN_SDK_VER}
+    elif [[ "$TYPE" =~ ^(tvos)$ ]]; then
+        export MIN_SDK_VER=${TVOS_MIN_SDK_VER}
+    elif [[ "$TYPE" =~ ^(xros)$ ]]; then
+        export MIN_SDK_VER=${XROS_MIN_SDK_VER}
+    elif [[ "$TYPE" =~ ^(watchos)$ ]]; then
+        export MIN_SDK_VER=${WATCHOS_MIN_SDK_VER}
+    else
+        export MIN_SDK_VER=${IOS_MIN_SDK_VER}
+        echo "MIN_SDK not set for $TYPE"
+    fi
 fi
 
 CROSSCOMPILING=0

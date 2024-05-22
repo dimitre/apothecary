@@ -12,7 +12,7 @@ VER=1.1.0
 GIT_URL=https://github.com/google/brotli
 GIT_TAG=v$VER
 
-FORMULA_TYPES=( "vs" )
+FORMULA_TYPES=( "osx" "vs" "ios" "watchos" "catos" "xros" "tvos" )
 
 # download the source code and unpack it into LIB_NAME
 function download() {
@@ -34,6 +34,7 @@ function prepare() {
 
 # executed inside the lib src dir
 function build() {
+  LIBS_ROOT=$(realpath $LIBS_DIR)
 	if [ "$TYPE" == "vs" ] ; then
 			find ./ -name "*.o" -type f -delete
       echo "building $TYPE | $ARCH | $VS_VER | vs: $VS_VER_GEN"
@@ -69,7 +70,7 @@ function build() {
           -DCMAKE_CXX_FLAGS_RELEASE="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_RELEASE} ${EXCEPTION_FLAGS}" \
           -DCMAKE_C_FLAGS_RELEASE="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_RELEASE} ${EXCEPTION_FLAGS}" 
 
-      cmake --build . --config Release
+      cmake --build . --config Release --target install
      	cd ..      
       rm -f CMakeCache.txt
   elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
@@ -79,26 +80,30 @@ function build() {
     cmake .. \
       -DCMAKE_INSTALL_PREFIX=Release \
         -DCMAKE_VERBOSE_MAKEFILE=${VERBOSE_MAKEFILE} \
-        -D BUILD_SHARED_LIBS=OFF \
+        -DBUILD_SHARED_LIBS=ON \
         -DCMAKE_PREFIX_PATH="${LIBS_ROOT}" \
-        -DZLIB_BUILD_EXAMPLES=OFF \
-        -DSKIP_EXAMPLE=ON \
+        -DDEPLOYMENT_TARGET=${MIN_SDK_VER} \
         -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_STANDARD=17 \
-            -DCMAKE_CXX_STANDARD=17 \
-            -DCMAKE_CXX_STANDARD_REQUIRED=ON \
-            -DCMAKE_CXX_EXTENSIONS=OFF \
-            -DCMAKE_TOOLCHAIN_FILE=$APOTHECARY_DIR/toolchains/ios.toolchain.cmake \
-            -DCMAKE_INSTALL_PREFIX=Release \
-            -DCMAKE_CXX_FLAGS_RELEASE="-DUSE_PTHREADS=1 ${FLAG_RELEASE} " \
-            -DCMAKE_C_FLAGS_RELEASE="-DUSE_PTHREADS=1 ${FLAG_RELEASE} " \
-            -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
-            -DCMAKE_INSTALL_INCLUDEDIR=include \
-            -DPLATFORM=$PLATFORM \
-            -DENABLE_BITCODE=OFF \
-            -DENABLE_ARC=OFF \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE \
-            -DENABLE_VISIBILITY=OFF 
+        -DCMAKE_C_STANDARD=17 \
+        -DCMAKE_CXX_STANDARD=17 \
+        -DCMAKE_CXX_STANDARD_REQUIRED=ON \
+        -DCMAKE_CXX_EXTENSIONS=OFF \
+        -DCMAKE_TOOLCHAIN_FILE=$APOTHECARY_DIR/toolchains/ios.toolchain.cmake \
+        -DCMAKE_INSTALL_PREFIX=Release \
+        -DCMAKE_CXX_FLAGS_RELEASE="-DUSE_PTHREADS=1 ${FLAG_RELEASE} " \
+        -DCMAKE_C_FLAGS_RELEASE="-DUSE_PTHREADS=1 ${FLAG_RELEASE} " \
+        -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
+        -DCMAKE_INSTALL_INCLUDEDIR=include \
+        -DCMAKE_INSTALL_LIBDIR=lib \
+        -DCMAKE_INSTALL_BINARY_DIR=lib \
+        -DCMAKE_INSTALL_FULL_LIBDIR=lib \
+        -DCMAKE_INSTALL_BINDIR=lib \
+        -DBROTLI_BUNDLED_MODE=ON \
+        -DPLATFORM=$PLATFORM \
+        -DENABLE_BITCODE=OFF \
+        -DENABLE_ARC=OFF \
+        -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE \
+        -DENABLE_VISIBILITY=OFF
 
      cmake --build . --config Release --target install
      cd ..
@@ -108,11 +113,11 @@ function build() {
 # executed inside the lib src dir, first arg $1 is the dest libs dir root
 function copy() {
   mkdir -p $1/lib/$TYPE
-	if [ "$TYPE" == "osx" ] ; then
+	if [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
 		mkdir -p $1/include    
     mkdir -p $1/lib/$TYPE/$PLATFORM/
-    cp -Rv "build_${TYPE}_${PLATFORM}/Release/include/"* $1/include/
-    cp -v "build_${TYPE}_${PLATFORM}/Release/lib/brotli.a" $1/lib/$TYPE/$PLATFORM/brotli.a
+    cp -v -r c/include/* $1/include
+    cp -v "build_${TYPE}_${PLATFORM}/"*.a $1/lib/$TYPE/$PLATFORM/
     . "$SECURE_SCRIPT"
     secure $1/lib/$TYPE/$PLATFORM/zlib.a 
 	elif [ "$TYPE" == "vs" ] ; then
