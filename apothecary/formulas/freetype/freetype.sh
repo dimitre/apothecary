@@ -59,6 +59,8 @@ function build() {
             -DFT_REQUIRE_BZIP2=FALSE \
             -DFT_DISABLE_HARFBUZZ=TRUE \
             -D FT_REQUIRE_ZLIB=TRUE \
+			-D FT_REQUIRE_BZIP2=FALSE \
+			-D FT_REQUIRE_PNG=TRUE \
 			-D FT_REQUIRE_HARFBUZZ=FALSE \
 			-DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
 			-DCMAKE_INSTALL_INCLUDEDIR=include"
@@ -102,7 +104,6 @@ function build() {
             -DPNG_LIBRARY=${LIBPNG_LIBRARY} \
             -DPNG_ROOT=${LIBPNG_ROOT} \
             -DBROTLI_ROOT=${LIBBROTLI_ROOT} \
-
             -DBROTLIDEC_INCLUDE_DIRS=${LIBBROTLI_INCLUDE_DIR} \
             -DBROTLI_INCLUDE_DIR=${LIBBROTLI_INCLUDE_DIR} \
             -DBROTLIDEC_LIBRARIES=${LIBBROTLI_LIBRARY};${LIBBROTLI_DEC_LIB};${LIBBROTLI_ENC_LIB} \
@@ -437,13 +438,13 @@ function copy() {
 		cp -R "build_${TYPE}_${PLATFORM}/Release/include/freetype2/" $1/include
 		cp -v "build_${TYPE}_${PLATFORM}/Release/lib/libfreetype.a" $1/lib/$TYPE/$PLATFORM/libfreetype.a
 		. "$SECURE_SCRIPT"
-		secure $1/lib/$TYPE/$PLATFORM/libfreetype.a
+		secure $1/lib/$TYPE/$PLATFORM/libfreetype.a freetype.pkl
 	elif [ "$TYPE" == "vs" ] ; then
 		mkdir -p $1/lib/$TYPE/$PLATFORM/
 		cp -Rv "build_${TYPE}_${ARCH}/include/" $1/
         cp -v "build_${TYPE}_${ARCH}/lib/"*.lib $1/lib/$TYPE/$PLATFORM/
         . "$SECURE_SCRIPT"
-		secure $1/lib/$TYPE/$PLATFORM/libfreetype.lib
+		secure $1/lib/$TYPE/$PLATFORM/libfreetype.lib freetype.pkl
         # cp -v "build_${TYPE}_${ARCH}/lib/"*.pdb $1/lib/$TYPE/$PLATFORM/
 
 	elif [ "$TYPE" == "msys2" ] ; then
@@ -454,11 +455,11 @@ function copy() {
         mkdir -p $1/lib/$TYPE/$ABI
 	    cp -v build_$ABI/libfreetype.a $1/lib/$TYPE/$ABI/libfreetype.a
 	    . "$SECURE_SCRIPT"
-		secure $1/lib/$TYPE/$ABI/libfreetype.a
+		secure $1/lib/$TYPE/$ABI/libfreetype.a freetype.pkl
 	elif [ "$TYPE" == "emscripten" ] ; then
 		cp -v "build_${TYPE}/freetype_wasm.wasm" $1/lib/$TYPE/libfreetype.wasm
 		. "$SECURE_SCRIPT"
-		secure $1/lib/$TYPE/libfreetype.wasm
+		secure $1/lib/$TYPE/libfreetype.wasm freetype.pkl
 	fi
 
 	# copy license files
@@ -496,16 +497,13 @@ function clean() {
 	fi
 }
 
-function save() {
-    . "$SAVE_SCRIPT" 
-    savestatus ${TYPE} "freetype" ${ARCH} ${VER} true "${SAVE_FILE}"
-}
-
 function load() {
     . "$LOAD_SCRIPT"
-    if loadsave ${TYPE} "freetype" ${ARCH} ${VER} "${SAVE_FILE}"; then
-      return 0;
+    LOAD_RESULT=$(loadsave ${TYPE} "freetype" ${ARCH} ${VER} "$LIBS_DIR_REAL/$1/lib/$TYPE/$PLATFORM" ${PLATFORM} )
+    PREBUILT=$(echo "$LOAD_RESULT" | tail -n 1)
+    if [ "$PREBUILT" -eq 1 ]; then
+        echo 1
     else
-      return 1;
+        echo 0
     fi
 }

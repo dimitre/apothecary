@@ -65,6 +65,9 @@ function build() {
           -DCMAKE_VERBOSE_MAKEFILE=${VERBOSE_MAKEFILE} \
           -DCMAKE_INSTALL_LIBDIR="lib" \
           -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
+          -DBUILD_TESTING=OFF \
+          -DBROTLI_BUILD_TOOLS=OFF \
+          -DBROTLI_BUNDLED_MODE=ON \
           -DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_RELEASE}" \
           -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_RELEASE} " \
           -DCMAKE_CXX_FLAGS_RELEASE="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_RELEASE} ${EXCEPTION_FLAGS}" \
@@ -80,7 +83,7 @@ function build() {
     cmake .. \
       -DCMAKE_INSTALL_PREFIX=Release \
         -DCMAKE_VERBOSE_MAKEFILE=${VERBOSE_MAKEFILE} \
-        -DBUILD_SHARED_LIBS=ON \
+        -DBUILD_SHARED_LIBS=OFF \
         -DCMAKE_PREFIX_PATH="${LIBS_ROOT}" \
         -DDEPLOYMENT_TARGET=${MIN_SDK_VER} \
         -DCMAKE_BUILD_TYPE=Release \
@@ -97,10 +100,13 @@ function build() {
         -DCMAKE_INSTALL_LIBDIR=lib \
         -DCMAKE_INSTALL_BINARY_DIR=lib \
         -DCMAKE_INSTALL_FULL_LIBDIR=lib \
-        -DCMAKE_INSTALL_BINDIR=lib \
-        -DBROTLI_BUNDLED_MODE=ON \
+        -DCMAKE_INSTALL_LIBDIR="lib" \
+        -DBROTLI_BUNDLED_MODE=OFF \
         -DPLATFORM=$PLATFORM \
         -DENABLE_BITCODE=OFF \
+        -DBUILD_TESTING=OFF \
+        -DBROTLI_BUILD_TOOLS=OFF \
+        -DBROTLI_BUNDLED_MODE=ON \
         -DENABLE_ARC=OFF \
         -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE \
         -DENABLE_VISIBILITY=OFF
@@ -113,17 +119,18 @@ function build() {
 # executed inside the lib src dir, first arg $1 is the dest libs dir root
 function copy() {
   mkdir -p $1/lib/$TYPE
+  mkdir -p $1/include 
+  . "$SECURE_SCRIPT"
 	if [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
-		mkdir -p $1/include    
     mkdir -p $1/lib/$TYPE/$PLATFORM/
     cp -v -r c/include/* $1/include
     cp -v "build_${TYPE}_${PLATFORM}/"*.a $1/lib/$TYPE/$PLATFORM/
-    . "$SECURE_SCRIPT"
-    secure $1/lib/$TYPE/$PLATFORM/zlib.a 
+    secure $1/lib/$TYPE/$PLATFORM/libbrotlidec.a brotli.pkl
 	elif [ "$TYPE" == "vs" ] ; then
 		cp -v -r c/include/* $1/include
     mkdir -p $1/lib/$TYPE/$PLATFORM/
     cp -v "build_${TYPE}_${PLATFORM}/Release/"*.lib $1/lib/$TYPE/$PLATFORM/
+    secure $1/lib/$TYPE/$PLATFORM/brotlidec.lib brotli.pkl
 	fi
 }
 
@@ -143,19 +150,13 @@ function clean() {
 	fi
 }
 
-function save() {
-    . "$SAVE_SCRIPT" 
-    savestatus ${TYPE} "brotli" ${ARCH} ${VER} true "${SAVE_FILE}"
-}
-
 function load() {
     . "$LOAD_SCRIPT"
-    echo "load file ${SAVE_FILE}"
-    if loadsave ${TYPE} "brotli" ${ARCH} ${VER} "${SAVE_FILE}"; then
-      echo "The entry exists and doesn't need to be rebuilt."
-      return 0;
+    LOAD_RESULT=$(loadsave ${TYPE} "brotli" ${ARCH} ${VER} "$LIBS_DIR_REAL/$1/lib/$TYPE/$PLATFORM" ${PLATFORM} )
+    PREBUILT=$(echo "$LOAD_RESULT" | tail -n 1)
+    if [ "$PREBUILT" -eq 1 ]; then
+        echo 1
     else
-      echo "The entry doesn't exist or needs to be rebuilt."
-      return 1;
+        echo 0
     fi
 }
