@@ -78,6 +78,13 @@ APOTHECARY_PATH=$ROOT/apothecary
 if [ -z "${OUTPUT_FOLDER+x}" ]; then
     export OUTPUT_FOLDER="$ROOT/out"
 fi
+
+if [[ "$TARGET" =~ ^(osx|ios|tvos|xros|catos|watchos|macos)$ ]]; then
+
+    export OUTPUT_FOLDER="$ROOT/xout"
+fi
+
+
 #OUTPUT_FOLDER=$ROOT/out
 
 
