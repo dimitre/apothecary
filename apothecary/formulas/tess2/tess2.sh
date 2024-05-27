@@ -93,8 +93,8 @@ function build() {
 		echo "building tess2 $TYPE | $ARCH | $VS_VER | vs: $VS_VER_GEN"
 	    echo "--------------------"
 	    GENERATOR_NAME="Visual Studio ${VS_VER_GEN}"
-	    mkdir -p "build_${TYPE}_${ARCH}"
-	    cd "build_${TYPE}_${ARCH}"
+	    mkdir -p "build_${TYPE}_${PLATFORM}"
+	    cd "build_${TYPE}_${PLATFORM}"
 	    rm -f CMakeCache.txt *.lib *.o 
 	    cmake .. ${DEFS} \
 	    	-DLIBRARY_SUFFIX=${ARCH} \
@@ -216,13 +216,13 @@ function copy() {
 	mkdir -p $1/lib/$TYPE
 	if [ "$TYPE" == "vs" ] ; then
 		mkdir -p $1/lib/$TYPE/$PLATFORM/
-		cp -Rv "build_${TYPE}_${ARCH}/Release/include/" $1/ 
-    	cp -f "build_${TYPE}_${ARCH}/Release/lib/tess2.lib" $1/lib/$TYPE/$PLATFORM/tess2.lib
+		cp -Rv "build_${TYPE}_${PLATFORM}/Release/include/" $1/ 
+    	cp -f "build_${TYPE}_${PLATFORM}/Release/lib/tess2.lib" $1/lib/$TYPE/$PLATFORM/tess2.lib
 		secure $1/lib/$TYPE/$PLATFORM/tess2.lib tess2
 	elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
 		mkdir -p $1/lib/$TYPE/$PLATFORM/
 		cp -v "build_${TYPE}_${PLATFORM}/Release/lib/libtess2.a" $1/lib/$TYPE/$PLATFORM/libtess2.a
-        secure $1/lib/$TYPE/libtess2.a tess2
+        secure $1/lib/$TYPE/$PLATFORM/libtess2.a tess2
 		cp -Rv "build_${TYPE}_${PLATFORM}/Release/include/" $1/include
 	elif [ "$TYPE" == "emscripten" ]; then
 		cp -v build/libtess2.a $1/lib/$TYPE/libtess2.a

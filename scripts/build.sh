@@ -9,11 +9,7 @@ else
     export FORCE=""
 fi
 
-if [ -z "${FORCE+x}" ]; then
-    export FORCE=""
-else
-    export FORCE="-f"
-fi
+
 
 
 # trap any script errors and exit
@@ -72,7 +68,7 @@ else
         wait $apothecaryPID
 
         echo "Tail of log for $formula_name"
-        run "tail -n 100 formula_${ARCH}.log"
+        run "tail -n 10 formula_${ARCH}.log"
     }
 
     ROOT=$(cd $(dirname "$0"); pwd -P)/..
@@ -224,7 +220,7 @@ fi
 function build(){
     trap "trapError" ERR
 
-    echo Build $formula_name
+    echo "Build $formula_name $FORCE"
 
     local ARGS="$FORCE -j$PARALLEL -t$TARGET -d$OUTPUT_FOLDER "
 	if [ "$GITHUB_ACTIONS" = true ] && [ "$TARGET" == "vs" ]; then
