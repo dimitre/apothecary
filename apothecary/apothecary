@@ -1430,6 +1430,13 @@ function frameworkFormula() {
         mkdir -p $XLIBSLOCAL/$1/lib/$TYPE
     fi
     export XLIBS_DIR_REAL=$(realpath $XLIBSLOCAL)
+    if [[  ! -e "$LIBS_DIR_REAL/$1/lib/$TYPE" ]] && [[ $TYPE == "macos" ]]; then
+        mkdir -p $LIBS_DIR_REAL/$1/lib/$TYPE
+    fi
+    if [[  ! -e "$XLIBS_DIR_REAL/$1/lib/$TYPE" ]] && [[ $TYPE == "macos" ]]; then
+        mkdir -p $XLIBS_DIR_REAL/$1/lib/$TYPE
+    fi
+        
     if [ ! -e "$LIBS_DIR/$1" ] ; then
         echoVerbose " Nothing to create framework from to merge in lib dest dir: \"$1\""
     else
@@ -1544,8 +1551,8 @@ function frameworkFormula() {
                             else
                                 PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}/
                                 MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}/$(basename "$ARCH_FILE" .a).a"
-                                echo "MERGED_PATH: $ARCH - $MERGED_PATH
-                                mkdir -p "$PATH_MERGE""
+                                echo "MERGED_PATH: [$ARCH] - [$MERGED_PATH]"
+                                mkdir -p $PATH_MERGE
                                 xcrun codesign --sign - $MERGED_PATH || true
                                 if [[ "$num_archive_paths" -gt 1 ]]; then
                                     for dir in "${merged_dirs[@]}"; do
@@ -1598,10 +1605,13 @@ function frameworkFormula() {
                     xcframework_flags+=" -library ${dir}/${1}.a"
                     xcframework_flags+=" -headers $LIBS_DIR_REAL/$1/include"
                 fi
-            else
+            elif [ "$num_files" -gt 0 ]; then
                 # Directly use the single archive or skip if none
+                echo "Directly use the single archive or skip if none ${a_files[0]}]"
                 xcframework_flags+=" -library ${a_files[0]}"
                 xcframework_flags+=" -headers $LIBS_DIR_REAL/$1/include"
+            else
+                echo " Skip for [$dir]]"
             fi
         done
 
