@@ -1430,6 +1430,7 @@ function frameworkFormula() {
         mkdir -p $XLIBSLOCAL/$1/lib/$TYPE
     fi
     export XLIBS_DIR_REAL=$(realpath $XLIBSLOCAL)
+
     if [[  ! -e "$LIBS_DIR_REAL/$1/lib/$TYPE" ]] && [[ $TYPE == "macos" ]]; then
         mkdir -p $LIBS_DIR_REAL/$1/lib/$TYPE
     fi
@@ -1553,6 +1554,7 @@ function frameworkFormula() {
                                 MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}/$(basename "$ARCH_FILE" .a).a"
                                 echo "MERGED_PATH: [$ARCH] - [$MERGED_PATH]"
                                 mkdir -p $PATH_MERGE
+
                                 xcrun codesign --sign - $MERGED_PATH || true
                                 if [[ "$num_archive_paths" -gt 1 ]]; then
                                     for dir in "${merged_dirs[@]}"; do
