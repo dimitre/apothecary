@@ -1476,6 +1476,7 @@ function frameworkFormula() {
         LIB_NAME=""
         CURRENT_TYPE=$TYPE
         BINARY_NAME=""
+        XCFRAMEWORK_PATH="${LIBS_DIR_REAL}/${1}/lib/${TYPE}/$1.xcframework"
         #for CURRENT_TYPE in "${PLATFORM_TYPES[@]}"; do
             if [ -d "$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE" ]; then
                 echo "Processing platform type: $CURRENT_TYPE"
@@ -1554,7 +1555,11 @@ function frameworkFormula() {
                                 MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}/$(basename "$ARCH_FILE" .a).a"
                                 echo "MERGED_PATH: [$ARCH] - [$MERGED_PATH]"
                                 mkdir -p $PATH_MERGE
-
+                                if ! command -v rsync &> /dev/null; then    
+                                    rsync -av --include --delete '*/' --include '*.a' --exclude '*' "$DIR_PATH/" "$PATH_MERGE/"
+                                else
+                                    cp -v "$DIR_PATH"/*.a "$PATH_MERGE"
+                                fi
                                 xcrun codesign --sign - $MERGED_PATH || true
                                 if [[ "$num_archive_paths" -gt 1 ]]; then
                                     for dir in "${merged_dirs[@]}"; do
@@ -1619,21 +1624,20 @@ function frameworkFormula() {
 
         
 
-        echoSuccess " flags: \"$1\" \"$xcframework_flags\" "
+       echoSuccess " flags: \"$1\" \"$xcframework_flags\" "
         HERE_DIR=$(cd $(dirname "./"); pwd -P)
         cd "${LIBS_DIR_REAL}/${1}/lib/${TYPE}/"
-
-        XCFRAMEWORK_PATH="${LIBS_DIR_REAL}/${1}/lib/${TYPE}/$1.xcframework"
         xcodebuild -create-xcframework $xcframework_flags -output $1.xcframework
+        echoSuccess " xcframework for $TYPE built successfully."
+        echo "========================"
+        
+        cd $HERE_DIR
 
         XDIR="${XLIBS_DIR_REAL}/"
         X_LIBS=$XDIR/${1}/lib/${TYPE}/
         X_INCLUDE=$XDIR/${1}/include
         X_LICENSE=$XDIR/${1}/license
         mkdir -p "${X_LIBS}"
-
-        XDIR="X${LIBS_DIR_REAL}/${1}/lib/${TYPE}/"
-        mkdir -p "${XDIR}"
 
         
 
@@ -1665,16 +1669,17 @@ function frameworkFormula() {
 
         rm -rfv "${XCFRAMEWORK_PATH}"
 
+
         echoSuccess " xcframework for $TYPE built successfully."
-        echo "========================"
-        echo "=========DANGER ZONE DELETE ALL BINARIES EXCEPT XCFRAMEWORK ==============="
-        dirs=$(find . -mindepth 1 -maxdepth 1 -type d)
-        for dir in $dirs; do
-            if [[ ! "$dir" =~ .*.xcframework$ ]]; then
-                echo "Removing directory: $dir"
-                rm -rf "$dir"
-            fi
-        done
+        # echo "========================"
+        # echo "=========DANGER ZONE DELETE ALL BINARIES EXCEPT XCFRAMEWORK ==============="
+        # dirs=$(find . -mindepth 1 -maxdepth 1 -type d)
+        # for dir in $dirs; do
+        #     if [[ ! "$dir" =~ .*.xcframework$ ]]; then
+        #         echo "Removing directory: $dir"
+        #         rm -rf "$dir"
+        #     fi
+        # done
         echo "========================"
         cd $HERE_DIR
     fi
