@@ -1554,7 +1554,7 @@ function frameworkFormula() {
                                 PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}/
                                 MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}/$(basename "$ARCH_FILE" .a).a"
                                 echo "MERGED_PATH: [$ARCH] - [$MERGED_PATH]"
-                                mkdir -p $PATH_MERGE
+                                mkdir -p "$PATH_MERGE"
                                 if ! command -v rsync &> /dev/null; then    
                                     rsync -av --include --delete '*/' --include '*.a' --exclude '*' "$DIR_PATH/" "$PATH_MERGE/"
                                 else
@@ -1634,7 +1634,7 @@ function frameworkFormula() {
         cd $HERE_DIR
 
         XDIR="${XLIBS_DIR_REAL}/"
-        X_LIBS=$XDIR/${1}/lib/${TYPE}/
+        X_LIBS="$XDIR/${1}/lib/${TYPE}/"
         X_INCLUDE=$XDIR/${1}/include
         X_LICENSE=$XDIR/${1}/license
         mkdir -p "${X_LIBS}"
@@ -1896,7 +1896,7 @@ function xframeworkFormula() {
         cd $HERE_DIR
 
         XDIR="${XLIBS_DIR_REAL}/"
-        X_LIBS=$XDIR/${1}/lib/${TYPE}/
+        X_LIBS="$XDIR/${1}/lib/${TYPE}/"
         X_INCLUDE=$XDIR/${1}/include
         X_LICENSE=$XDIR/${1}/license
         mkdir -p "${X_LIBS}"
