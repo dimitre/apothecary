@@ -34,7 +34,7 @@ if [ -z "${OVERWRITE+x}" ]; then
 fi
 
 if [ -z "${XCFRAMEWORK+x}" ]; then
-    XCFRAMEWORK=0
+    XCFRAMEWORK=1
 fi
 
 export OUTPUT_FOLDER="${ROOT}/out"
