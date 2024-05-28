@@ -57,7 +57,7 @@ jobs:
     if: github.repository == 'openframeworks/apothecary' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding')
     needs: wait-for-workflows
     env:
-      DEVELOPER_DIR: "/Applications/Xcode_15.2.app/Contents/Developer"
+      DEVELOPER_DIR: "/Applications/Xcode_15.4.app/Contents/Developer"
       TARGET: "macos"
     steps:
       - name: Determine Release
@@ -125,6 +125,7 @@ jobs:
           done
           echo ".tar.bz2 extraction complete."
           rm -f out/*.tar.bz2 
+          rm -f xout/*.tar.bz2
       - name: List output directory
         run: ls -lah ./
       - name: List output directory out
@@ -134,6 +135,8 @@ jobs:
         run: scripts/macos/xcframework_all.sh
         env:
           GA_CI_SECRET: ${{ secrets.CI_SECRET }}
+      - name: List output directory xout
+        run: ls -lah ./xout
       - name: Package Final
         working-directory: ${{ env.GITHUB_WORKSPACE }}
         run: scripts/package.sh
@@ -148,4 +151,4 @@ jobs:
           tag: ${{ env.release }}
           release: ${{ env.release }}
           prerelease: ${{ env.prerelease }}
-          files: out/openFrameworksLibs_${{ env.release }}_${{ env.TARGET }}.tar.bz2
+          files: xout/openFrameworksLibs_${{ env.release }}_${{ env.TARGET }}.tar.bz2

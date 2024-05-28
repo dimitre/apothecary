@@ -21,7 +21,7 @@ jobs:
     env:
       TARGET: "ios"
       BUNDLE: ${{ matrix.bundle }}
-      DEVELOPER_DIR: "/Applications/Xcode_15.2.app/Contents/Developer"
+      DEVELOPER_DIR: "/Applications/Xcode_15.4.app/Contents/Developer"
     steps:
       - name: Determine Release
         id: vars
@@ -81,6 +81,7 @@ jobs:
         run: |
           echo "Removing .tar.bz2 files from out/ directory..."
           rm -f out/*.tar.bz2
+          rm -f xout/*.tar.bz2
           echo "Cleanup complete."
       - name: Merge our iOS libaries into XC Framework 
         working-directory: ${{ env.GITHUB_WORKSPACE }}
@@ -103,4 +104,4 @@ jobs:
           tag: ${{ env.release }}
           release: ${{ env.release }}
           prerelease: ${{ env.prerelease }}
-          files: out/openFrameworksLibs_${{ env.release }}_${{ env.TARGET }}_${{ matrix.bundle }}.tar.bz2
+          files: xout/openFrameworksLibs_${{ env.release }}_${{ env.TARGET }}_${{ matrix.bundle }}.tar.bz2
