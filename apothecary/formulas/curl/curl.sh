@@ -330,7 +330,7 @@ function copy() {
 
 	if [ "$TYPE" == "vs" ] ; then
         mkdir -p $1/lib/$TYPE/$PLATFORM/
-        cp -Rv "build_${TYPE}_${ARCH}/Release/include/"* $1/ 
+        cp -Rv "build_${TYPE}_${ARCH}/Release/include/"* $1/include 
         cp -v "build_${TYPE}_${ARCH}/Release/lib/libcurl.lib" $1/lib/$TYPE/$PLATFORM/libcurl.lib  
         . "$SECURE_SCRIPT"
         secure $1/lib/$TYPE/$PLATFORM/libcurl.lib curl.pkl
