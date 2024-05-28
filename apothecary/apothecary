@@ -66,6 +66,7 @@ BUILD_DIR=
 # full path to the destination dir for compiled libs
 LIBS_DIR=""
 
+XC_DIR=""
 DEPEND_DIR=""
 
 # number of parallel tasks to run on make.
@@ -1471,13 +1472,16 @@ function frameworkFormula() {
             ["SIMULATOR64_VISIONOS"]="SIMULATOR_VISIONOS"
         )
         # this gets a bit advanced bash so need Bash 4 - brew install bash if issues arrise... hectic problems 
+        PLATFORM_TYPES=("ios" "osx" )
         declare -a merged_dirs=()
         VERSION=""
         LIB_NAME=""
         CURRENT_TYPE=$TYPE
         BINARY_NAME=""
         XCFRAMEWORK_PATH="${LIBS_DIR_REAL}/${1}/lib/${TYPE}/$1.xcframework"
-        #for CURRENT_TYPE in "${PLATFORM_TYPES[@]}"; do
+        declare -a merged_dirs=()
+        LIB_NAME=""
+        for CURRENT_TYPE in "${PLATFORM_TYPES[@]}"; do
             if [ -d "$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE" ]; then
                 echo "Processing platform type: $CURRENT_TYPE"
                 for ARCH in "${!ARCH_PAIRS[@]}"; do
@@ -1497,12 +1501,11 @@ function frameworkFormula() {
                         if [[ -f "$PKL_PATH" ]]; then
                             echo "Found PKL file at $PKL_PATH"
                             VERSION=$(grep 'version =' "$PKL_PATH" | cut -d '"' -f 2 | xargs) # Use xargs to trim whitespace
-                            LIB_NAME=$(grep 'name =' "$PKL_PATH" | cut -d '"' -f 2 | xargs) # Use xargs to trim whitespace
-                            BUILD_TIME=$(grep 'buildTime =' "$PKL_PATH" | cut -d '"' -f 2 | xargs) # Use xargs to trim whitespace
-                            BINARY_NAME=$(grep 'binary =' "$PKL_PATH" | cut -d '"' -f 2 | xargs) # Use xargs to trim whitespace
                             echo "VERSION $VERSION"
                             # DEFINES=$(grep 'defines =' "$PKL_PATH" | cut -d '"' -f 2 | xargs) # Use xargs to trim whitespace
                             # echo "DEFINES $DEFINES"
+                            LIB_NAME=$(grep 'name =' "$PKL_PATH" | cut -d '"' -f 2 | xargs) # Use xargs to trim whitespace
+                            BUILD_TIME=$(grep 'buildTime =' "$PKL_PATH" | cut -d '"' -f 2 | xargs) # Use xargs to trim whitespace
                             if [[ -z "$VERSION" ]]; then
                                 echo "No version info found in PKL file. Using default."
                                 VERSION="default_version" # Provide a default version or handle error
@@ -1527,13 +1530,6 @@ function frameworkFormula() {
                                 # Determine the output filename in the merged directory
                                 PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}_${PAIR}/
                                 MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}_${PAIR}/$(basename "$ARCH_FILE" .a).a"
-                                mkdir -p "$PATH_MERGE"
-                                echo "MERGED_PATH: $ARCH - $MERGED_PATH"
-                                if ! command -v rsync &> /dev/null; then    
-                                    rsync -av --include --delete '*/' --include '*.a' --exclude '*' "$DIR_PATH/" "$PATH_MERGE/"
-                                else
-                                    cp -v "$DIR_PATH"/*.a "$PATH_MERGE"
-                                fi
                                 # Use lipo to merge the architectures into a single file - prevents linking errors
                                 xcrun lipo -create "$ARCH_FILE" "$PAIR_FILE" -output "$MERGED_PATH"
                                 echo "Merged $ARCH_FILE and $PAIR_FILE into $MERGED_PATH"
@@ -1546,15 +1542,15 @@ function frameworkFormula() {
                                 done
                                 if [[ $path_found_in_array == false ]]; then
                                     merged_dirs+=("$PATH_MERGE")
-                                    echoVerbose "path_found_in_array == false adding $PATH_MERGE"
+                                    echo "path_found_in_array == false adding $PATH_MERGE"
                                 else
-                                    echoVerbose "path_found_in_array == true"
+                                    echo "path_found_in_array == true"
                                 fi
                             else
                                 PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}/
                                 MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}/$(basename "$ARCH_FILE" .a).a"
-                                echo "MERGED_PATH: [$ARCH] - [$MERGED_PATH]"
                                 mkdir -p "$PATH_MERGE"
+                                echo "MERGED_PATH: $ARCH - $MERGED_PATH"
                                 if ! command -v rsync &> /dev/null; then    
                                     rsync -av --include --delete '*/' --include '*.a' --exclude '*' "$DIR_PATH/" "$PATH_MERGE/"
                                 else
@@ -1590,7 +1586,7 @@ function frameworkFormula() {
             else
                 echoVerbose "Platform type directory does not exist: $LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE"
             fi
-        #done
+        done
 
         # Final merging pass to combine binaries of same / merged architectures into single binary to prevent linking issues
         for dir in "${merged_dirs[@]}"; do
