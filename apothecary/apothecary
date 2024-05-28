@@ -1431,13 +1431,6 @@ function frameworkFormula() {
         mkdir -p $XLIBSLOCAL
     fi
     export XLIBS_DIR_REAL=$(realpath $XLIBSLOCAL)
-
-    if [[  ! -e "$LIBS_DIR_REAL/$1" ]]; then
-        mkdir -p $LIBS_DIR_REAL/$1
-    fi
-    if [[  ! -e "$XLIBS_DIR_REAL/$1/lib/$TYPE" ]]; then
-        mkdir -p $XLIBS_DIR_REAL/$1/lib/$TYPE
-    fi
         
     if [ ! -e "$LIBS_DIR/$1" ] ; then
         echoVerbose " Nothing to create framework from to merge in lib dest dir: \"$1\""
@@ -1686,19 +1679,12 @@ function xframeworkFormula() {
     TYPE=macos
     export LIBS_DIR_REAL=$(realpath $LIBS_DIR)
 
-   XLIBSLOCAL="$APOTHECARY_DIR/../xout"
+    XLIBSLOCAL="$APOTHECARY_DIR/../xout"
     if [[  ! -e "$XLIBSLOCAL" ]]; then
         mkdir -p $XLIBSLOCAL
     fi
-    if [[  ! -e "$LIBS_DIR_REAL/$1" ]]; then
-        mkdir -p $LIBS_DIR_REAL/$1
-    fi
-    if [[  ! -e "$XLIBS_DIR_REAL/$1/lib/$TYPE" ]]; then
-        mkdir -p $XLIBS_DIR_REAL/$1/lib/$TYPE
-    fi
     export XLIBS_DIR_REAL=$(realpath $XLIBSLOCAL)
 
-    
     PLATFORM_TYPES=("ios" "osx" "catos" "xros" "tvos" "watchos")
     VERSION=""
     DEFINES=""
