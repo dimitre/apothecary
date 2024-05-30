@@ -1677,6 +1677,8 @@ function xframeworkFormula() {
     PLATFORM_TYPES=("ios" "osx" "catos" "xros" "tvos" "watchos")
     VERSION=""
     DEFINES=""
+    mkdir -p ${LIBS_DIR_REAL}/${1}/lib/${TYPE}
+    
     if [ ! -e "$LIBS_DIR/$1" ] ; then
         echoVerbose " Nothing to create framework from to merge in lib dest dir: \"$1\""
     else
