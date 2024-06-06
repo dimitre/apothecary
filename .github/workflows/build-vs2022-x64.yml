@@ -58,49 +58,45 @@ jobs:
         fi
     - name: 'Download artifacts'
       uses: actions/github-script@v7
-      env:
-        BUNDLE: ${{ matrix.bundle }}
-        TARGET: "vs"
-        ARCH: 64
-        with:
-          script: |
-            const fs = require('fs');
-            const path = require('path');
-            // https://api.github.com/repos/openframeworks/apothecary/actions/artifacts?per_page=100
-            // Ensure the output directory exists
-            const outputDir = path.join(process.env.GITHUB_WORKSPACE, 'out');
-            if (!fs.existsSync(outputDir)){
-              fs.mkdirSync(outputDir);
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          // https://api.github.com/repos/openframeworks/apothecary/actions/artifacts?per_page=100
+          // Ensure the output directory exists
+          const outputDir = path.join(process.env.GITHUB_WORKSPACE, 'out');
+          if (!fs.existsSync(outputDir)){
+            fs.mkdirSync(outputDir);
+          }
+
+          // List all artifacts for the repository
+          const artifacts = await github.rest.actions.listArtifactsForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sort: 'created_at',
+            direction: 'desc',
+            per_page: 48
+          });
+
+          const artifactNamesToDownload = ['libs-${{ env.TARGET }}-${{ env.ARCH }}-${{ matrix.bundle }}'];
+          let count = 0;
+          
+          for (const artifact of artifacts.data.artifacts) {
+            if (artifactNamesToDownload.includes(artifact.name) && !artifact.expired) {
+              // Download the artifact
+              const download = await github.rest.actions.downloadArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id,
+                archive_format: 'zip',
+              });
+
+              const artifactPath = path.join(outputDir, `${artifact.name}.zip`);
+              fs.writeFileSync(artifactPath, Buffer.from(download.data));
+              console.log(`Downloaded ${artifact.name} to ${artifactPath}`);
+              count++;
             }
-
-            // List all artifacts for the repository
-            const artifacts = await github.rest.actions.listArtifactsForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sort: 'created_at',
-              direction: 'desc',
-              per_page: 48
-            });
-
-            const artifactNamesToDownload = ['libs-${{ env.TARGET }}-${{ env.ARCH }}-${{ matrix.bundle }}'];
-            let count = 0;
-            
-            for (const artifact of artifacts.data.artifacts) {
-              if (artifactNamesToDownload.includes(artifact.name) && !artifact.expired) {
-                // Download the artifact
-                const download = await github.rest.actions.downloadArtifact({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  artifact_id: artifact.id,
-                  archive_format: 'zip',
-                });
-
-                const artifactPath = path.join(outputDir, `${artifact.name}.zip`);
-                fs.writeFileSync(artifactPath, Buffer.from(download.data));
-                console.log(`Downloaded ${artifact.name} to ${artifactPath}`);
-                count++;
-              }
-            }
+          }
     - name: Extract Artifacts to /out
       run: |
         mkdir -p out
