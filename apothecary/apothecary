@@ -1450,17 +1450,25 @@ function frameworkFormula() {
 
         if [[ $1 == "fmod" ]] || [[ $1 == "fmodex" ]] || [[ $1 == "glm" ]] || [[ $1 == "json" ]] || [[ $1 == "utf8" ]]; then
             if ! command -v rsync &> /dev/null; then      
-                if [[  ! -e "${LIBS_DIR_REAL}/${1}/lib/" ]]; then
+                if [[  -e "${LIBS_DIR_REAL}/${1}/lib/" ]]; then
                     cp -av "${LIBS_DIR_REAL}/${1}/lib/"* ${X_LIBS}
                 fi
-                cp -av "${LIBS_DIR_REAL}/${1}/include/"* ${X_INCLUDE}
-                cp -av "${LIBS_DIR_REAL}/${1}/license/"* ${X_LICENSE}
+                if [[  -e "${LIBS_DIR_REAL}/${1}/include/" ]]; then
+                    cp -av "${LIBS_DIR_REAL}/${1}/include/"* ${X_INCLUDE}
+                fi
+                if [[  -e "${LIBS_DIR_REAL}/${1}/license/" ]]; then
+                    cp -av "${LIBS_DIR_REAL}/${1}/license/"* ${X_LICENSE}
+                fi
             else
-                if [[  ! -e "${LIBS_DIR_REAL}/${1}/lib/" ]]; then
+                if [[  -e "${LIBS_DIR_REAL}/${1}/lib/" ]]; then
                     rsync -av --delete "${LIBS_DIR_REAL}/${1}/lib/" ${X_LIBS}
                 fi
-                rsync -av --delete "${LIBS_DIR_REAL}/${1}/include/" ${X_INCLUDE}
-                rsync -av --delete "${LIBS_DIR_REAL}/${1}/license/" ${X_LICENSE}
+                if [[  -e "${LIBS_DIR_REAL}/${1}/include/" ]]; then
+                    rsync -av --delete "${LIBS_DIR_REAL}/${1}/include/" ${X_INCLUDE}
+                fi
+                if [[  -e "${LIBS_DIR_REAL}/${1}/license/" ]]; then
+                    rsync -av --delete "${LIBS_DIR_REAL}/${1}/license/" ${X_LICENSE}
+                fi
             fi
             exit 0;
         fi
@@ -1709,17 +1717,25 @@ function xframeworkFormula() {
 
         if [[ $1 == "fmod" ]] || [[ $1 == "fmodex" ]] || [[ $1 == "glm" ]] || [[ $1 == "json" ]] || [[ $1 == "utf8" ]]; then
             if ! command -v rsync &> /dev/null; then      
-                if [[  ! -e "${LIBS_DIR_REAL}/${1}/lib/" ]]; then
+                if [[  -e "${LIBS_DIR_REAL}/${1}/lib/" ]]; then
                     cp -av "${LIBS_DIR_REAL}/${1}/lib/"* ${X_LIBS}
                 fi
-                cp -av "${LIBS_DIR_REAL}/${1}/include/"* ${X_INCLUDE}
-                cp -av "${LIBS_DIR_REAL}/${1}/license/"* ${X_LICENSE}
+                if [[  -e "${LIBS_DIR_REAL}/${1}/include/" ]]; then
+                    cp -av "${LIBS_DIR_REAL}/${1}/include/"* ${X_INCLUDE}
+                fi
+                if [[  -e "${LIBS_DIR_REAL}/${1}/license/" ]]; then
+                    cp -av "${LIBS_DIR_REAL}/${1}/license/"* ${X_LICENSE}
+                fi
             else
-                if [[  ! -e "${LIBS_DIR_REAL}/${1}/lib/" ]]; then
+                if [[  -e "${LIBS_DIR_REAL}/${1}/lib/" ]]; then
                     rsync -av --delete "${LIBS_DIR_REAL}/${1}/lib/" ${X_LIBS}
                 fi
-                rsync -av --delete "${LIBS_DIR_REAL}/${1}/include/" ${X_INCLUDE}
-                rsync -av --delete "${LIBS_DIR_REAL}/${1}/license/" ${X_LICENSE}
+                if [[  -e "${LIBS_DIR_REAL}/${1}/include/" ]]; then
+                    rsync -av --delete "${LIBS_DIR_REAL}/${1}/include/" ${X_INCLUDE}
+                fi
+                if [[  -e "${LIBS_DIR_REAL}/${1}/license/" ]]; then
+                    rsync -av --delete "${LIBS_DIR_REAL}/${1}/license/" ${X_LICENSE}
+                fi
             fi
             exit 0;
         fi
