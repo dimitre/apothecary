@@ -97,22 +97,22 @@ jobs:
               count++;
             }
           }
-    - name: Extract Artifacts to /out
-      run: |
-        mkdir -p out
-        for zip in out/*.zip; do
-            echo "Extracting $zip..."
-            unzip -o "$zip" -d out/
-        done
-        echo "Extraction complete."
-        rm out/*.zip
-        for tarball in out/*.tar.bz2; do
-            echo "Extracting $tarball..."
-            tar -xjf "$tarball" -C out/
-        done
-        echo ".tar.bz2 extraction complete."
-        rm -f out/*.tar.bz2 
-        rm -f xout/*.tar.bz2
+    # - name: Extract Artifacts to /out
+    #   run: |
+    #     mkdir -p out
+    #     for zip in out/*.zip; do
+    #         echo "Extracting $zip..."
+    #         unzip -o "$zip" -d out/
+    #     done
+    #     echo "Extraction complete."
+    #     rm out/*.zip
+    #     for tarball in out/*.tar.bz2; do
+    #         echo "Extracting $tarball..."
+    #         tar -xjf "$tarball" -C out/
+    #     done
+    #     echo ".tar.bz2 extraction complete."
+    #     rm -f out/*.tar.bz2 
+    #     rm -f xout/*.tar.bz2
     - name: Build64
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: scripts/build.sh
