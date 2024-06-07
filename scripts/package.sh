@@ -259,7 +259,9 @@ if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]] || [[
     echo "On Master or Bleeding Branch and not a PR - zipping build";
 else
     echo "This is a PR or not master/bleeding branch, exiting build before compressing";
-    exit 0
+    if [ -z "${RELEASE+x}" ]; then
+        exit 0
+    fi
 fi
 
 if [ -z ${APPVEYOR+x} ]; then
@@ -280,10 +282,14 @@ else
 fi
     
 CUR_BRANCH="master";
-if [ "$GITHUB_ACTIONS" = true ]; then
-    CUR_BRANCH="${GITHUB_REF##*/}"
-elif [ "$TRAVIS" = true ]; then
-    CUR_BRANCH="$TRAVIS_BRANCH"
+if [ -z "${RELEASE+x}" ]; then
+    if [ "$GITHUB_ACTIONS" = true ]; then
+        CUR_BRANCH="${GITHUB_REF##*/}"
+    elif [ "$TRAVIS" = true ]; then
+        CUR_BRANCH="$TRAVIS_BRANCH"
+    fi
+else
+    CUR_BRANCH="$RELEASE"
 fi
 
 
