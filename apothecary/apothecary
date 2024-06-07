@@ -1721,7 +1721,7 @@ function xframeworkFormula() {
         mkdir -p "${X_INCLUDE}"
         mkdir -p "${X_LICENSE}"
 
-        if [[ $1 == "fmod" ]] || [[ $1 == "fmodex" ]] || [[ $1 == "glm" ]] || [[ $1 == "json" ]] || [[ $1 == "utf8" ]]; then
+        if [[ $1 == "fmod" ]] || [[ $1 == "fmodex" ]] || [[ $1 == "libusb" ]] || [[ $1 == "glm" ]] || [[ $1 == "json" ]] || [[ $1 == "utf8" ]]; then
             if ! command -v rsync &> /dev/null; then      
                 if [[  -e "${LIBS_DIR_REAL}/${1}/lib/${TYPE}/" ]]; then
                     mkdir -p "${X_LIBS}"
@@ -1836,6 +1836,7 @@ function xframeworkFormula() {
                                 for dir in "${merged_dirs[@]}"; do
                                     if [[ "$dir" == "$PATH_MERGE" ]]; then
                                         path_found_in_array=true
+                                        echo "dir${dir}==PATH_MERGE${PATH_MERGE} path_found_in_array == true  not adding for $PAIR_FILE"
                                         break
                                     fi
                                 done
@@ -1843,7 +1844,7 @@ function xframeworkFormula() {
                                     merged_dirs+=("$PATH_MERGE")
                                     echo "path_found_in_array == false adding $PATH_MERGE"
                                 else
-                                    echo "path_found_in_array == true"
+                                    echo "path_found_in_array == true - not adding for $PAIR_FILE"
                                 fi
                             else
                                 PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/${ARCH}/
