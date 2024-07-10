@@ -120,8 +120,8 @@ function build() {
 
 		rm -f CMakeCache.txt *.a *.o
 		cmake  .. \
-			-DCMAKE_C_STANDARD=17 \
-			-DCMAKE_CXX_STANDARD=17 \
+			-DCMAKE_C_STANDARD=${C_STANDARD} \
+			-DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
 			-DCMAKE_CXX_STANDARD_REQUIRED=ON \
 			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 ${FLAG_RELEASE}" \
 			-DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 ${FLAG_RELEASE} " \
@@ -173,8 +173,8 @@ function build() {
         rm -f CMakeCache.txt *.a *.o *.lib
         CUSTOM_DEFS="
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_STANDARD=17 \
-            -DCMAKE_CXX_STANDARD=17 \
+            -DCMAKE_C_STANDARD=${C_STANDARD} \
+            -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
             -DCMAKE_CXX_STANDARD_REQUIRED=ON \
             -DCMAKE_CXX_EXTENSIONS=OFF \
             -DBUILD_SHARED_LIBS=OFF \
@@ -305,7 +305,7 @@ function build() {
 		#export PATH=-I${SYSROOT}/usr/lib/
 		export OUTPUT_DIR=
 		echo "./Configure: $DEEP_TOOLCHAIN_PATH/usr/lib/"
-		FLAGS="no-asm  no-async shared no-dso no-comp no-deprecated no-md2 no-rc5 no-rfc3779 no-unit-test no-sctp no-ssl-trace no-ssl2 no-ssl3 no-engine no-weak-ssl-ciphers -w -std=c17 -ldl -shared -lc -L$DEEP_TOOLCHAIN_PATH -L$TOOLCHAIN/lib/gcc/$ANDROID_POSTFIX/4.9.x/"
+		FLAGS="no-asm  no-async shared no-dso no-comp no-deprecated no-md2 no-rc5 no-rfc3779 no-unit-test no-sctp no-ssl-trace no-ssl2 no-ssl3 no-engine no-weak-ssl-ciphers -w -std=c${C_STANDARD} -ldl -shared -lc -L$DEEP_TOOLCHAIN_PATH -L$TOOLCHAIN/lib/gcc/$ANDROID_POSTFIX/4.9.x/"
 		./Configure $CONFIGURE  -D__ANDROID_API__=$ANDROID_API $FLAGS --prefix="$CURRENTPATH/$BUILD_TO_DIR" --openssldir="$CURRENTPATH/$BUILD_TO_DIR"
  
  

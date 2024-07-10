@@ -33,8 +33,8 @@ function build() {
 	echo "uriparser build" 
 	LIBS_ROOT=$(realpath $LIBS_DIR)
 	DEFS=" 
-			-DCMAKE_C_STANDARD=17 \
-      -DCMAKE_CXX_STANDARD=17 \
+			-DCMAKE_C_STANDARD=${C_STANDARD} \
+      -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
       -DCMAKE_CXX_STANDARD_REQUIRED=ON \
       -DCMAKE_CXX_EXTENSIONS=OFF \
 			-DURIPARSER_BUILD_TESTS=OFF \
@@ -163,7 +163,7 @@ function build() {
         $EMSDK/upstream/emscripten/emcmake cmake .. \
           ${DEFS} \
           -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
-          -DCMAKE_C_STANDARD=17 \
+          -DCMAKE_C_STANDARD=${C_STANDARD} \
           -B . \
 					-DBUILD_SHARED_LIBS=OFF \
 					-DCMAKE_BUILD_TYPE=Release \
@@ -172,8 +172,8 @@ function build() {
 	        -DCMAKE_INSTALL_INCLUDEDIR=include \
 	        -DCMAKE_CXX_STANDARD_REQUIRED=ON \
 	        -DBUILD_SHARED_LIBS=OFF \
-	        -DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -std=c++17 -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}" \
-	        -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -std=c17 -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}"
+	        -DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -std=c++${CPP_STANDARD} -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}" \
+	        -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -std=c${C_STANDARD} -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}"
         cmake --build . --config Release 
 	    	cd ..
 	fi

@@ -10,13 +10,17 @@ FORMULA_TYPES=( "osx" "ios" "catos" "xros" "tvos" "vs" "android" "emscripten" )
 
 # define the version
 
-VER=4.9.0
+VER=4.10.0
 
 FORMULA_DEPENDS=( "zlib" "libpng" )
 
 # tools for git use
 GIT_URL=https://github.com/opencv/opencv
 GIT_TAG=$VER
+
+
+GIT_CONTRIB_URL=https://github.com/opencv/opencv_contrib
+VER=4.10.0
 
 # download the source code and unpack it into LIB_NAME
 function download() {
@@ -25,6 +29,12 @@ function download() {
   downloader $GIT_URL/archive/refs/tags/$VER.tar.gz
   tar -xzf $VER.tar.gz
   mv opencv-$VER opencv
+  rm $VER.tar.gz
+
+
+  downloader $GIT_CONTRIB_URL/archive/refs/tags/$VER.tar.gz
+  tar -xzf $VER.tar.gz
+  mv opencv_contrib-$VER opencv/opencv_contrib
   rm $VER.tar.gz
 }
 
@@ -61,8 +71,8 @@ function build() {
     rm -f CMakeCache.txt || true
     DEFS="
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_STANDARD=17 \
-            -DCMAKE_CXX_STANDARD=17 \
+            -DCMAKE_C_STANDARD=${C_STANDARD} \
+            -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
             -DCMAKE_CXX_STANDARD_REQUIRED=ON \
             -DCMAKE_CXX_EXTENSIONS=OFF
             -DBUILD_SHARED_LIBS=OFF \
@@ -95,6 +105,7 @@ function build() {
       -DCMAKE_BUILD_TYPE="Release" \
       -DBUILD_SHARED_LIBS=OFF \
       -DBUILD_DOCS=OFF \
+      -DOPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
       -DBUILD_EXAMPLES=OFF \
       -DBUILD_FAT_JAVA_LIB=OFF \
       -DBUILD_JASPER=OFF \
@@ -111,6 +122,7 @@ function build() {
       -DBUILD_opencv_stitching=ON \
       -DBUILD_opencv_calib3d=ON \
       -DBUILD_opencv_objdetect=ON \
+      -DOPENCV_ENABLE_NONFREE=OFF \
       -DWITH_PNG=ON \
       -DBUILD_PNG=OFF \
       -DWITH_1394=OFF \
@@ -217,13 +229,14 @@ function build() {
     LIBPNG_LIBRARY="$LIBS_ROOT/libpng/lib/$TYPE/$PLATFORM/libpng.lib"
 
     DEFS="
-        -DCMAKE_C_STANDARD=17 \
-        -DCMAKE_CXX_STANDARD=17 \
+        -DCMAKE_C_STANDARD=${C_STANDARD} \
+        -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
         -DCMAKE_CXX_STANDARD_REQUIRED=ON \
         -DCMAKE_CXX_EXTENSIONS=OFF \
         -DBUILD_SHARED_LIBS=ON \
         -DCMAKE_INSTALL_PREFIX=install \
         -DCMAKE_INSTALL_INCLUDEDIR=include \
+        -DOPENCV_ENABLE_NONFREE=OFF \
         -DCMAKE_INSTALL_LIBDIR="lib" \
         -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
         -DWITH_OPENCLAMDBLAS=OFF \
@@ -317,7 +330,7 @@ function build() {
         -DCV_DISABLE_OPTIMIZATION=OFF"
 
       if [[ ${ARCH} == "arm64ec" || "${ARCH}" == "arm64" ]]; then
-        EXTRA_DEFS="-DCV_ENABLE_INTRINSICS=OFF -DENABLE_SSE=OFF -DENABLE_SSE2=OFF -DENABLE_SSE3=OFF -DENABLE_SSE41=OFF -DENABLE_SSE42=OFF -DENABLE_SSSE3=OFF"
+        EXTRA_DEFS="-DCV_ENABLE_INTRINSICS=OFF -DENABLE_SSE=OFF -DENABLE_SSE2=OFF -DENABLE_SSE3=OFF -DENABLE_SSE41=OFF -DENABLE_SSE42=OFF -DENABLE_SSSE3=OFF -DBUILD_opencv_rgbd=OFF "
       else 
         EXTRA_DEFS="-DCV_ENABLE_INTRINSICS=ON -DENABLE_SSE=ON -DENABLE_SSE2=ON -DENABLE_SSE3=ON -DENABLE_SSE41=ON -DENABLE_SSE42=ON -DENABLE_SSSE3=ON"
       fi
@@ -328,6 +341,7 @@ function build() {
         -DCMAKE_PREFIX_PATH="${LIBS_ROOT}" \
         -DCMAKE_INSTALL_PREFIX=Debug \
         -DCMAKE_BUILD_TYPE="Debug" \
+        -DOPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
         -DCMAKE_CXX_FLAGS_DEBUG="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_DEBUG} ${EXCEPTION_FLAGS}" \
         -DCMAKE_C_FLAGS_DEBUG="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_DEBUG} ${EXCEPTION_FLAGS}" \
         -DCMAKE_VERBOSE_MAKEFILE=${VERBOSE_MAKEFILE} \
@@ -349,6 +363,7 @@ function build() {
         -DCMAKE_PREFIX_PATH="${LIBS_ROOT}" \
         -DCMAKE_INSTALL_PREFIX=Release \
         -DCMAKE_BUILD_TYPE="Release" \
+        -DOPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
         -DCMAKE_VERBOSE_MAKEFILE=${VERBOSE_MAKEFILE} \
         -DCMAKE_SYSTEM_PROCESSOR="${PLATFORM}" \
         -DCMAKE_CXX_FLAGS_RELEASE="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_RELEASE} ${EXCEPTION_FLAGS}" \
@@ -422,10 +437,11 @@ function build() {
       -DCMAKE_SYSROOT=$SYSROOT \
       -DANDROID_NDK=$NDK_ROOT \
       -DANDROID_ABI=$ABI \
+      -DOPENCV_ENABLE_NONFREE=OFF \
       -DCMAKE_ANDROID_ARCH_ABI=$ABI \
       -DANDROID_STL=c++_shared \
-      -DCMAKE_C_STANDARD=17 \
-      -DCMAKE_CXX_STANDARD=17 \
+      -DCMAKE_C_STANDARD=${C_STANDARD} \
+      -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
       -DCMAKE_CXX_STANDARD_REQUIRED=ON \
       -DCMAKE_CXX_EXTENSIONS=OFF \
       -DANDROID_PLATFORM=${ANDROID_PLATFORM} \
@@ -434,6 +450,7 @@ function build() {
       -DBUILD_ANDROID_EXAMPLES=OFF \
       -DBUILD_opencv_objdetect=ON \
       -DBUILD_opencv_video=OFF \
+      -DOPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
       -DBUILD_opencv_videoio=OFF \
       -DBUILD_opencv_features2d=ON \
       -DBUILD_opencv_flann=OFF \
@@ -518,11 +535,12 @@ function build() {
       -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
       -DCMAKE_BUILD_TYPE="Release" \
       -DCMAKE_INSTALL_LIBDIR="lib" \
-      -DCMAKE_C_STANDARD=17 \
-      -DCMAKE_CXX_STANDARD=17 \
+      -DCMAKE_C_STANDARD=${C_STANDARD} \
+      -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
       -DCPU_BASELINE='' \
       -DCPU_DISPATCH='' \
       -DCV_TRACE=OFF \
+      -DOPENCV_ENABLE_NONFREE=OFF \
       -DCMAKE_PREFIX_PATH="${LIBS_ROOT}" \
       -DCMAKE_C_FLAGS="-pthread -I/${EMSDK}/upstream/emscripten/system/lib/libcxxabi/include/ -msimd128 ${FLAG_RELEASE}" \
       -DCMAKE_CXX_FLAGS="-pthread -I/${EMSDK}/upstream/emscripten/system/lib/libcxxabi/include/ -msimd128 ${FLAG_RELEASE}" \
@@ -532,6 +550,7 @@ function build() {
       -DBUILD_FAT_JAVA_LIB=OFF \
       -DBUILD_JASPER=OFF \
       -DBUILD_PACKAGE=OFF \
+      -DOPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules \
       -DBUILD_TESTS=OFF \
       -DBUILD_PERF_TESTS=OFF \
       -DWITH_QUIRC:BOOL=OFF \
@@ -547,6 +566,7 @@ function build() {
       -DBUILD_opencv_python2=OFF \
       -DBUILD_opencv_gapi=OFF \
       -DBUILD_opencv_ml=OFF \
+      -DBUILD_opencv_rgbd=OFF \
       -DBUILD_opencv_shape=OFF \
       -DBUILD_opencv_highgui=OFF \
       -DBUILD_opencv_superres=OFF \

@@ -7,7 +7,7 @@
 #
 # uses a makeifle build system
 
-FORMULA_TYPES=( "linux64" "linuxarmv6l" "linuxarmv7l" "linuxaarch64" "osx" "vs" "ios" "watchos" "catos" "xros" "tvos" "android" "emscripten" "msys2" )
+FORMULA_TYPES=( "linux64" "linuxarmv6l" "linuxarmv7l" "linuxaarch64" "osx" "vs" "ios" "watchos" "catos" "xros" "tvos" "android" "emscripten" )
 
 #dependencies
 FORMULA_DEPENDS=( "zlib" "libxml2" )
@@ -87,8 +87,8 @@ function build() {
 	    cd "build_${TYPE}_${ARCH}"
 	    DEFS="-DLIBRARY_SUFFIX=${ARCH} \
 	        -DCMAKE_BUILD_TYPE=Release \
-	        -DCMAKE_C_STANDARD=17 \
-	        -DCMAKE_CXX_STANDARD=17 \
+	        -DCMAKE_C_STANDARD=${C_STANDARD} \
+	        -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
 	        -DCMAKE_CXX_STANDARD_REQUIRED=ON \
 	        -DCMAKE_CXX_EXTENSIONS=OFF
 	        -DBUILD_SHARED_LIBS=OFF \
@@ -125,8 +125,8 @@ function build() {
 	    rm -f CMakeCache.txt *.lib *.o
 	    env CXXFLAGS="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_RELEASE} ${EXCEPTION_FLAGS}"
 	    DEFS="
-	        -DCMAKE_C_STANDARD=17 \
-	        -DCMAKE_CXX_STANDARD=17 \
+	        -DCMAKE_C_STANDARD=${C_STANDARD} \
+	        -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
 	        -DCMAKE_CXX_STANDARD_REQUIRED=ON \
 	        -DCMAKE_CXX_EXTENSIONS=OFF \
 	        -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
@@ -193,8 +193,8 @@ function build() {
 			-DCMAKE_ANDROID_ARCH_ABI=$ABI \
             -DANDROID_TOOLCHAIN=clang++ \
             -DCMAKE_CXX_COMPILER_RANLIB=${RANLIB} \
-            -DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -fvisibility-inlines-hidden -std=c++17 -Wno-implicit-function-declaration -frtti " \
-            -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -fvisibility-inlines-hidden -std=c17 -Wno-implicit-function-declaration -frtti " \
+            -DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -fvisibility-inlines-hidden -std=c++${CPP_STANDARD} -Wno-implicit-function-declaration -frtti " \
+            -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -fvisibility-inlines-hidden -std=c${C_STANDARD} -Wno-implicit-function-declaration -frtti " \
             -DANDROID_PLATFORM=${ANDROID_PLATFORM} \
             -DCMAKE_PREFIX_PATH="${LIBS_ROOT}" \
             -DCMAKE_SYSROOT=$SYSROOT \
@@ -202,8 +202,8 @@ function build() {
             -DANDROID_NDK=$NDK_ROOT \
             -DANDROID_ABI=$ABI \
             -DANDROID_STL=c++_shared \
-            -DCMAKE_C_STANDARD=17 \
-            -DCMAKE_CXX_STANDARD=17 \
+            -DCMAKE_C_STANDARD=${C_STANDARD} \
+            -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
             -DCMAKE_CXX_STANDARD_REQUIRED=ON \
             -DCMAKE_CXX_EXTENSIONS=OFF \
             -DLIBXML2_WITH_LZMA=OFF \
@@ -242,16 +242,16 @@ function build() {
 		    -DCMAKE_PREFIX_PATH="${ZLIB_ROOT} ${LIBXML2_ROOT}" \
 		    -DSKIP_EXAMPLE=1 \
 		    -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_STANDARD=17 \
-            -DCMAKE_CXX_STANDARD=17 \
+            -DCMAKE_C_STANDARD=${C_STANDARD} \
+            -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
             -DDO_XML_INSTALL=ON \
             -DCMAKE_CXX_STANDARD_REQUIRED=ON \
             -DCMAKE_CXX_EXTENSIONS=ON \
             -DDEPLOYMENT_TARGET=${MIN_SDK_VER} \
             -DCMAKE_TOOLCHAIN_FILE=$APOTHECARY_DIR/toolchains/ios.toolchain.cmake \
             -DCMAKE_INSTALL_PREFIX=Release \
-            -DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -fvisibility-inlines-hidden -std=c++17 -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}" \
-            -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -fvisibility-inlines-hidden -std=c17 -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}" \
+            -DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -fvisibility-inlines-hidden -std=c++${CPP_STANDARD} -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}" \
+            -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -fvisibility-inlines-hidden -std=c${C_STANDARD} -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}" \
             -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
             -DCMAKE_INSTALL_INCLUDEDIR=include \
             -DLIBXML2_ROOT=$LIBXML2_ROOT \
@@ -277,14 +277,14 @@ function build() {
 	    	-DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
 	    	-B . \
 	    	-DCMAKE_BUILD_TYPE=Release \
-	    	-DCMAKE_C_STANDARD=17 \
-			-DCMAKE_CXX_STANDARD=17 \
+	    	-DCMAKE_C_STANDARD=${C_STANDARD} \
+			-DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
 			-DCMAKE_CXX_STANDARD_REQUIRED=ON \
 			-DDO_XML_INSTALL=ON \
 			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1" \
 			-DCMAKE_C_FLAGS="-DUSE_PTHREADS=1" \
-			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -std=c++17 -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}" \
-            -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -std=c17 -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}" \
+			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -std=c++${CPP_STANDARD} -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}" \
+            -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -std=c${C_STANDARD} -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}" \
 			-DCMAKE_CXX_EXTENSIONS=OFF \
 			-DBUILD_SHARED_LIBS=OFF \
 			-DCMAKE_INSTALL_PREFIX=Release \

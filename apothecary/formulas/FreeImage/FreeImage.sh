@@ -13,10 +13,9 @@ FORMULA_TYPES=( "osx" "vs" "ios" "watchos" "catos" "xros" "tvos" "android" "emsc
 
 FORMULA_DEPENDS=( "zlib" "libpng" )
 
- # 3.18.0
-VER=31911
+VER=31950
 GIT_URL=https://github.com/danoli3/FreeImage
-GIT_TAG=test3.19.1
+GIT_TAG=3.19.5
 
 # download the source code and unpack it into LIB_NAME
 function download() {
@@ -68,16 +67,13 @@ function build() {
 	    ZLIB_INCLUDE_DIR="$LIBS_ROOT/zlib/include"
 	    ZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/$PLATFORM/zlib.a"
 		
-		  DEFS="-DCMAKE_C_STANDARD=17 \
-		        -DCMAKE_CXX_STANDARD=17 \
-		        -DCMAKE_CXX_STANDARD_REQUIRED=ON \
-		        -DCMAKE_CXX_EXTENSIONS=OFF
+		  DEFS="
 		        -DBUILD_SHARED_LIBS=OFF \
 		        -DCMAKE_INSTALL_INCLUDEDIR=include \
-		        -DNO_BUILD_LIBRAWLITE=ON \
-				-DNO_BUILD_OPENEXR=ON \
-				-DNO_BUILD_WEBP=ON \
-				-DNO_BUILD_JXR=ON \
+		        -DBUILD_LIBRAWLITE=OFF \
+				-DBUILD_OPENEXR=OFF \
+				-DBUILD_WEBP=ON \
+				-DBUILD_JXR=OFF \
 				-DENABLE_BITCODE=OFF \
 				-DENABLE_ARC=OFF \
 				-DCMAKE_POSITION_INDEPENDENT_CODE=TRUE \
@@ -85,25 +81,28 @@ function build() {
 				-DCMAKE_TOOLCHAIN_FILE=$APOTHECARY_DIR/toolchains/ios.toolchain.cmake
 		        "         
 		cmake  .. ${DEFS} \
-			-DCMAKE_C_STANDARD=17 \
-			-DCMAKE_CXX_STANDARD=17 \
+			-DCMAKE_C_STANDARD=${C_STANDARD} \
+			-DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
 			-DCMAKE_CXX_STANDARD_REQUIRED=ON \
 			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -fPIC ${FLAG_RELEASE}" \
 			-DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -fPIC ${FLAG_RELEASE}" \
 			-DCMAKE_CXX_EXTENSIONS=OFF \
 			-DCMAKE_BUILD_TYPE=Release \
 			-DPNG_ROOT=${LIBPNG_ROOT} \
-			-DPNG_PNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
+			-DPNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
             -DPNG_LIBRARY=${LIBPNG_LIBRARY} \
+            -DBUILD_LIBPNG=OFF \
 			-DCMAKE_INSTALL_PREFIX=Release \
 			-DCMAKE_PREFIX_PATH="${LIBS_ROOT}" \
 			-DZLIB_ROOT=${ZLIB_ROOT} \
             -DZLIB_LIBRARY=${ZLIB_LIBRARY} \
-            -DBUILD_ZLIB=OFF \
-            -DDEPLOYMENT_TARGET=${MIN_SDK_VER} \
             -DZLIB_INCLUDE_DIRS=${ZLIB_INCLUDE_DIR} \
+            -DBUILD_ZLIB=OFF \
+            -DBUILD_TESTS=OFF \
+            -DDEPLOYMENT_TARGET=${MIN_SDK_VER} \
 	        -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
 	        -DCMAKE_INSTALL_INCLUDEDIR=include \
+	        -GXcode \
 			-DPLATFORM=$PLATFORM 
 			 
 		cmake --build . --config Release --target install
@@ -117,8 +116,8 @@ function build() {
         export EXTRA_LINK_FLAGS="-fmessage-length=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit=0 -Wno-trigraphs -fpascal-strings -Wno-missing-field-initializers -Wno-missing-prototypes -Wno-return-type -Wno-non-virtual-dtor -Wno-overloaded-virtual -Wno-exit-time-destructors -Wno-missing-braces -Wparentheses -Wswitch -Wno-unused-function -Wno-unused-label -Wno-unused-parameter -Wno-unused-variable -Wunused-value -Wno-empty-body -Wno-uninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wno-constant-conversion -Wno-int-conversion -Wno-bool-conversion -Wno-enum-conversion -Wno-shorten-64-to-32 -Wno-newline-eof -Wno-c++11-extensions 
         -DHAVE_UNISTD_H=1 -DOPJ_STATIC -DNO_LCMS -D__ANSI__ -DDISABLE_PERF_MEASUREMENT -DLIBRAW_NODLL -DLIBRAW_LIBRARY_BUILD -DFREEIMAGE_LIB
          -fexceptions -fasm-blocks -fstrict-aliasing -Wdeprecated-declarations -Winvalid-offsetof -Wno-sign-conversion -Wmost -Wno-four-char-constants -Wno-unknown-pragmas -DNDEBUG -fPIC -fexceptions -fvisibility=hidden"
-		export CFLAGS="$CFLAGS $EXTRA_LINK_FLAGS -DNDEBUG -ffast-math -DPNG_ARM_NEON_OPT=0 -DDISABLE_PERF_MEASUREMENT -frtti -std=c17"
-		export CXXFLAGS="$CFLAGS $EXTRA_LINK_FLAGS -DNDEBUG -ffast-math -DPNG_ARM_NEON_OPT=0 -DDISABLE_PERF_MEASUREMENT -frtti -std=c++17"
+		export CFLAGS="$CFLAGS $EXTRA_LINK_FLAGS -DNDEBUG -ffast-math -DPNG_ARM_NEON_OPT=0 -DDISABLE_PERF_MEASUREMENT -frtti -std=c${C_STANDARD}"
+		export CXXFLAGS="$CFLAGS $EXTRA_LINK_FLAGS -DNDEBUG -ffast-math -DPNG_ARM_NEON_OPT=0 -DDISABLE_PERF_MEASUREMENT -frtti -std=c++${CPP_STANDARD}"
 		export LDFLAGS="$LDFLAGS $EXTRA_LINK_FLAGS -shared"
 
 		source ../../android_configure.sh $ABI cmake
@@ -158,8 +157,9 @@ function build() {
         	-D CMAKE_BUILD_TYPE=Release \
         	-D FT_REQUIRE_HARFBUZZ=FALSE \
         	-DPNG_ROOT=${LIBPNG_ROOT} \
-			-DPNG_PNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
+			-DPNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
             -DPNG_LIBRARY=${LIBPNG_LIBRARY} \
+            -DBUILD_LIBPNG=OFF \
         	-DDISABLE_PERF_MEASUREMENT=ON \
         	-DLIBRAW_LIBRARY_BUILD=ON\
         	-DLIBRAW_NODLL=ON \
@@ -171,14 +171,14 @@ function build() {
             -DANDROID_ABI=$ABI \
 			-DCMAKE_ANDROID_ARCH_ABI=$ABI \
             -DANDROID_STL=c++_shared \
-        	-DCMAKE_C_STANDARD=17 \
-        	-DCMAKE_CXX_STANDARD=17 \
+        	-DCMAKE_C_STANDARD=${C_STANDARD} \
+        	-DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
             -DCMAKE_CXX_STANDARD_REQUIRED=ON \
             -DCMAKE_CXX_EXTENSIONS=OFF \
-            -DNO_BUILD_LIBRAWLITE=ON \
-			-DNO_BUILD_OPENEXR=ON \
-			-DNO_BUILD_WEBP=ON \
-			-DNO_BUILD_JXR=ON \
+            -DBUILD_LIBRAWLITE=OFF \
+			-DBUILD_OPENEXR=OFF \
+			-DBUILD_WEBP=OFF \
+			-DBUILD_JXR=OFF \
         	-G 'Unix Makefiles' ..
 
 		make -j${PARALLEL_MAKE} VERBOSE=1
@@ -196,16 +196,16 @@ function build() {
 		LIBPNG_LIBRARY="$LIBS_ROOT/libpng/lib/$TYPE/$PLATFORM/libpng.lib"        
         
         DEFS="-DLIBRARY_SUFFIX=${ARCH} \
-	        -DCMAKE_C_STANDARD=17 \
-			-DCMAKE_CXX_STANDARD=17 \
+	        -DCMAKE_C_STANDARD=${C_STANDARD} \
+			-DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
 			-DCMAKE_CXX_STANDARD_REQUIRED=ON \
 			-DCMAKE_CXX_EXTENSIONS=OFF \
 			-DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
         	-DCMAKE_INSTALL_INCLUDEDIR=include \
-        	-DNO_BUILD_LIBRAWLITE=ON \
-			-DNO_BUILD_OPENEXR=ON \
-			-DNO_BUILD_WEBP=ON \
-			-DNO_BUILD_JXR=ON \
+        	-DBUILD_LIBRAWLITE=OFF \
+			-DBUILD_OPENEXR=OFF \
+			-DBUILD_WEBP=OFF \
+			-DBUILD_JXR=OFF \
 			-DPNG_ROOT=${LIBPNG_ROOT} \
 			-DPNG_PNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
             -DPNG_LIBRARY=${LIBPNG_LIBRARY} \
@@ -249,31 +249,62 @@ function build() {
 
 	    LIBPNG_ROOT="$LIBS_ROOT/libpng/"
 		LIBPNG_INCLUDE_DIR="$LIBS_ROOT/libpng/include"
-		LIBPNG_LIBRARY="$LIBS_ROOT/libpng/lib/$TYPE/libpng.a"
+		LIBPNG_LIBRARY="$LIBS_ROOT/libpng/lib/$TYPE/libpng.wasm"
+
+		ZLIB_ROOT="$LIBS_ROOT/zlib/"
+	    ZLIB_INCLUDE_DIR="$LIBS_ROOT/zlib/include"
+	    ZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/zlib.wasm"
 	    $EMSDK/upstream/emscripten/emcmake cmake .. \
 	    	-B build \
-	    	-DCMAKE_C_STANDARD=17 \
-			-DCMAKE_CXX_STANDARD=17 \
+	    	-DCMAKE_C_STANDARD=${C_STANDARD} \
+			-DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
 			-DCMAKE_CXX_STANDARD_REQUIRED=ON \
 			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1" \
 			-DCMAKE_C_FLAGS="-DUSE_PTHREADS=1" \
 			-DCMAKE_CXX_EXTENSIONS=OFF \
 			-DBUILD_SHARED_LIBS=OFF \
-	    	-DNO_BUILD_LIBRAWLITE=ON \
-			-DNO_BUILD_OPENEXR=ON \
-			-DNO_BUILD_WEBP=ON \
-			-DNO_BUILD_JXR=ON \
+	    	-DBUILD_LIBRAWLITE=OFF \
+			-DBUILD_OPENEXR=OFF \
+			-DBUILD_WEBP=OFF \
+			-DBUILD_JXR=OFF \
+			-DBUILD_TESTS=OFF \
 			-DPNG_ROOT=${LIBPNG_ROOT} \
-			-DPNG_PNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
+			-DPNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
             -DPNG_LIBRARY=${LIBPNG_LIBRARY} \
+            -DBUILD_LIBPNG=OFF \
+            -DZLIB_ROOT=${ZLIB_ROOT} \
+            -DZLIB_LIBRARY=${ZLIB_LIBRARY} \
+            -DZLIB_INCLUDE_DIRS=${ZLIB_INCLUDE_DIR} \
+            -DBUILD_ZLIB=OFF \
 		    -DCMAKE_INSTALL_PREFIX=Release \
             -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
-            -DCMAKE_INSTALL_INCLUDEDIR=include \
-            -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE=. \
-		    -DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE=. \
-		    -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=. 
+            -DCMAKE_INSTALL_INCLUDEDIR=include
 	    cmake --build build --target install --config Release
 	    cd ..
+	else
+		mkdir -p "build_${TYPE}_${PLATFORM}"
+		cd "build_${TYPE}_${PLATFORM}"
+		rm -f CMakeCache.txt *.a *.o
+		cmake -S . -B build \
+	    	-DCMAKE_C_STANDARD=${C_STANDARD} \
+			-DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
+			-DCMAKE_CXX_STANDARD_REQUIRED=ON \
+			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1" \
+			-DCMAKE_C_FLAGS="-DUSE_PTHREADS=1" \
+			-DCMAKE_CXX_EXTENSIONS=OFF \
+			-DBUILD_SHARED_LIBS=OFF \
+	    	-DBUILD_LIBRAWLITE=OFF \
+			-DBUILD_OPENEXR=OFF \
+			-DBUILD_WEBP=OFF \
+			-DBUILD_JXR=OFF \
+			-DBUILD_LIBPNG=ON \
+			-DBUILD_ZLIB=ON \
+			-DCMAKE_INSTALL_PREFIX=Release \
+            -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
+            -DCMAKE_INSTALL_INCLUDEDIR=include \
+	    cmake --build build --target install --config Release
+	    cd ..
+          
 	fi
 }
 
@@ -290,7 +321,7 @@ function copy() {
 	if [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
 		mkdir -p $1/include
 		mkdir -p $1/lib/$TYPE/$PLATFORM/
-		cp -v "build_${TYPE}_${PLATFORM}/libFreeImage.a" $1/lib/$TYPE/$PLATFORM/FreeImage.a
+		cp -v "build_${TYPE}_${PLATFORM}/Release/lib/libFreeImage.a" $1/lib/$TYPE/$PLATFORM/FreeImage.a
 		cp Source/FreeImage.h $1/include
 		 . "$SECURE_SCRIPT"
 		secure $1/lib/$TYPE/$PLATFORM/FreeImage.a FreeImage.pkl
@@ -351,7 +382,9 @@ function clean() {
             rm -r build_${TYPE}_${PLATFORM}     
         fi
 	else
-		make clean
+		if [ -d "build_${TYPE}_${PLATFORM}" ]; then
+            rm -r build_${TYPE}_${PLATFORM}     
+        fi
 		# run dedicated clean script
 		clean.sh
 	fi
