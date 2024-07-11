@@ -6,7 +6,7 @@
 #
 # Visual Studio & Code Blocks projects are provided
 
-FORMULA_TYPES=( "vs" )
+FORMULA_TYPES=( "vs" "msys2" )
 
 # define the version
 VER=master
@@ -94,20 +94,33 @@ function build() {
             -DBUILD_SHARED_LIBS=OFF \
             -DCMAKE_INSTALL_PREFIX=Release \
             -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
-            -DCMAKE_INSTALL_INCLUDEDIR=include"         
+            -DCMAKE_INSTALL_INCLUDEDIR=include"
+        
         cmake ../libs/videoInput ${DEFS} \
             -G "MSYS Makefiles" \
             -DCMAKE_INSTALL_PREFIX=Release \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -Iinclude ${FLAG_RELEASE}" \
             -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -Iinclude ${FLAG_RELEASE}" \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_LIBDIR="lib" \
             -DCMAKE_VERBOSE_MAKEFILE=ON \
             -DCMAKE_SYSTEM_NAME=MSYS \
             -DCMAKE_SYSTEM_PROCESSOR=${ARCH}
-        cmake --build . --config Release --target install
+        
+        cmake --build . --config Release 
+        cd ..
 	fi
+
+    # List all files in the build directory
+    echo "Listing all files in build directory:"
+    ls -a "build_${TYPE}_${ARCH}"
+
+    # List all files in the Release directory if it exists
+    if [ -d "build_${TYPE}_${ARCH}/Release" ]; then
+        echo "Listing all files in Release directory:"
+        ls -a "build_${TYPE}_${ARCH}/Release"
+    fi
+
+    cd ..
 }
 
 # executed inside the lib src dir, first arg $1 is the dest libs dir root
@@ -125,7 +138,7 @@ function copy() {
 	else
 		mkdir -p $1/lib/$TYPE
         mkdir -p $1/lib/$TYPE/$PLATFORM/
-        cp -v "videoInputSrcAndDemos/build_${TYPE}_${ARCH}/Release/videoInput.a" $1/lib/$TYPE/$PLATFORM/videoInput.a
+        cp -v "videoInputSrcAndDemos/build_${TYPE}_${ARCH}/libvideoInput.a" $1/lib/$TYPE/$PLATFORM/videoInput.a
 
 	fi
 
@@ -139,7 +152,7 @@ function clean() {
         if [ -d "videoInputSrcAndDemos/build_${TYPE}_${ARCH}" ]; then
             rm -r videoInputSrcAndDemos/build_${TYPE}_${ARCH}     
         fi
-	elif [ "$TYPE" == "msys2" ] ; then
+	elif [ "$TYPE" == "msys2"  ] ; then
 		if [ -d "videoInputSrcAndDemos/build_${TYPE}_${ARCH}" ]; then
             rm -r videoInputSrcAndDemos/build_${TYPE}_${ARCH}     
         fi

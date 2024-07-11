@@ -28,7 +28,7 @@ jobs:
           - mingw64
           - ucrt64
           - clang64
-          #- clangarm64
+          # - clangarm64
     name: ${{ matrix.flavor }}
     runs-on: windows-latest
     defaults:
@@ -52,6 +52,7 @@ jobs:
             gperf:p
             libxml2:p
             python3:p
+            wget2:p
       - name: Determine Release
         id: vars
         shell: bash
