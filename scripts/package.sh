@@ -303,7 +303,12 @@ elif [ "$TARGET" == "vs" ]; then
     "C:\Program Files\7-Zip\7z.exe" a $TARBALL $LIBS
     echo "C:\Program Files\7-Zip\7z.exe a $TARBALL $LIBS"
 elif [ "$TARGET" == "emscripten" ]; then
-    TARBALL=openFrameworksLibs_${CUR_BRANCH}_${TARGET}_${ARCH}.tar.bz2
+		if [ "$ARCH" == "64" ]; then
+				POSTFIX="_memory64"
+		else
+				POSTFIX=""
+		fi
+    TARBALL=openFrameworksLibs_${CUR_BRANCH}_${TARGET}${POSTFIX}.tar.bz2
     run "cd ${OUTPUT_FOLDER}; tar cjf $TARBALL $LIBS"
     echo "tar cjf $TARBALL $LIBS"
     echo " a $TARBALL $LIBS"
