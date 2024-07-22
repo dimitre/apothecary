@@ -160,8 +160,8 @@ function build() {
 
 	elif [ "$TYPE" == "emscripten" ] ; then
     	cp -v $FORMULA_DIR/CMakeLists.txt .
-    	mkdir -p build
-    	cd build
+    	mkdir -p build_${TYPE}_${PLATFORM}
+    	cd build_${TYPE}_${PLATFORM}
     	rm -f CMakeCache.txt *.a *.o 
     	emcmake cmake .. \
 			-DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
@@ -225,8 +225,9 @@ function copy() {
         secure $1/lib/$TYPE/$PLATFORM/libtess2.a tess2
 		cp -Rv "build_${TYPE}_${PLATFORM}/Release/include/" $1/include
 	elif [ "$TYPE" == "emscripten" ]; then
-		cp -v build/libtess2.a $1/lib/$TYPE/libtess2.a
-		secure $1/lib/$TYPE/tess2.lib tess2
+		mkdir -p $1/lib/$TYPE/$PLATFORM/
+		cp -v build_${TYPE}_${PLATFORM}/libtess2.a $1/lib/$TYPE/$PLATFORM/libtess2.a
+		secure $1/lib/$TYPE/$PLATFORM/libtess2.a tess2
 	elif [ "$TYPE" == "linux64" ] || [ "$TYPE" == "linux" ] || [ "$TYPE" == "msys2" ]; then
 		cp -v build/libtess2.a $1/lib/$TYPE/libtess2.a
 		secure $1/lib/$TYPE/libtess2.a tess2
@@ -259,7 +260,7 @@ function clean() {
 		if [ -d "build_${TYPE}_${ABI}" ]; then
 	        rm -r build_${TYPE}_${ABI}     
 	    fi
-	elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
+	elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos|emscripten)$ ]]; then
 		if [ -d "build_${TYPE}_${PLATFORM}" ]; then
 	        rm -r build_${TYPE}_${PLATFORM}     
 	    fi

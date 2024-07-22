@@ -248,10 +248,10 @@ function build() {
         export CXXFLAGS="-pthread"
         ZLIB_ROOT="$LIBS_ROOT/zlib/"
         ZLIB_INCLUDE_DIR="$LIBS_ROOT/zlib/include"
-        ZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/zlib.wasm"
-        mkdir -p build_$TYPE
-        cd build_$TYPE
-        rm -f CMakeCache.txt *.a *.o *.wasm
+        ZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/$PLATFORM/zlib.a"
+        mkdir -p build_${TYPE}_${PLATFORM}
+        cd build_${TYPE}_${PLATFORM}
+        rm -f CMakeCache.txt *.a *.o *.a
         $EMSDK/upstream/emscripten/emcmake cmake .. \
             ${DEFS} \
             -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
@@ -264,8 +264,6 @@ function build() {
             -DCMAKE_C_STANDARD=${C_STANDARD} \
             -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
             -DCMAKE_CXX_STANDARD_REQUIRED=ON \
-            -DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1" \
-            -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1" \
             -DLIBXML2_WITH_ZLIB=OFF \
             -DCMAKE_CXX_EXTENSIONS=OFF \
             -DBUILD_SHARED_LIBS=OFF \
@@ -276,9 +274,11 @@ function build() {
             -DZLIB_ROOT=${ZLIB_ROOT} \
             -DZLIB_INCLUDE_DIR=${ZLIB_INCLUDE_DIR} \
             -DZLIB_LIBRARY=${ZLIB_LIBRARY} \
-            -DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -std=c++${CPP_STANDARD} -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}" \
-            -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -std=c${C_STANDARD} -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}"
-        cmake --build . --config Release 
+            -DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -std=c++${CPP_STANDARD} -Wno-implicit-function-declaration -frtti -fPIC ${FLAG_RELEASE}" \
+            -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -std=c${C_STANDARD} -Wno-implicit-function-declaration -frtti -fPIC ${FLAG_RELEASE}"
+        # cmake --build . --config Release 
+        $EMSDK/upstream/emscripten/emmake make
+        $EMSDK/upstream/emscripten/emmake make install
         cd ..
     elif [ "$TYPE" == "linux64" ] || [ "$TYPE" == "msys2" ]; then
             #./autogen.sh
@@ -353,10 +353,11 @@ function copy() {
         secure $1/lib/$TYPE/$ABI/libxml2.a
         cp -Rv build_${TYPE}_${ABI}/libxml/xmlversion.h $1/include/libxml/xmlversion.h
     elif [ "$TYPE" == "emscripten" ]; then
+        mkdir -p $1/lib/$TYPE/$PLATFORM/
         cp -Rv include/libxml/* $1/include/libxml/
-        cp -v "build_${TYPE}/xml2_wasm.wasm" $1/lib/$TYPE/libxml2.wasm
-        secure $1/lib/$TYPE/libxml2.wasm
-        cp -Rv build_${TYPE}/libxml/xmlversion.h $1/include/libxml/xmlversion.h
+        cp -v "build_${TYPE}_$PLATFORM/xml2_wasm.a" $1/lib/$TYPE/$PLATFORM/libxml2.a
+        secure $1/lib/$TYPE/$PLATFORM/libxml2.a
+        cp -Rv build_${TYPE}_${PLATFORM}/libxml/xmlversion.h $1/include/libxml/xmlversion.h
     elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
         mkdir -p $1/lib/$TYPE/$PLATFORM/
         cp -v "build_${TYPE}_${PLATFORM}/Release/lib/libxml2.a" $1/lib/$TYPE/$PLATFORM/libxml2.a
@@ -388,7 +389,7 @@ function clean() {
         if [ -d "build_${TYPE}_${PLATFORM}" ]; then
             rm -r build_${TYPE}_${PLATFORM}     
         fi
-    elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
+    elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos|emscripten)$ ]]; then
         if [ -d "build_${TYPE}_${PLATFORM}" ]; then
             rm -r build_${TYPE}_${PLATFORM}     
         fi

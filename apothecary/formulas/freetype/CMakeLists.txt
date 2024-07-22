@@ -1,6 +1,6 @@
 # CMakeLists.txt
 #
-# Copyright (C) 2013-2023 by
+# Copyright (C) 2013-2024 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # Written originally by John Cary <cary@txcorp.com>
@@ -110,7 +110,7 @@
 
 # To minimize the number of cmake_policy() workarounds,
 # CMake >= 3 is requested.
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0...3.5)
 
 if (NOT CMAKE_VERSION VERSION_LESS 3.3)
   # Allow symbol visibility settings also on static libraries. CMake < 3.3
@@ -265,6 +265,8 @@ if (NOT FT_DISABLE_PNG)
   else ()
     find_package(PNG)
   endif ()
+  # FreePNG calls FindZLIB so unset ZLIB_FOUND to respect FT_DISABLE_ZLIB
+  unset(ZLIB_FOUND)
 endif ()
 
 if (NOT FT_DISABLE_ZLIB)
@@ -297,7 +299,7 @@ if (NOT FT_DISABLE_BROTLI)
 endif ()
 
 # Create the configuration file
-if (UNIX)
+if (UNIX AND NOT WIN32)
   check_include_file("unistd.h" HAVE_UNISTD_H)
   check_include_file("fcntl.h" HAVE_FCNTL_H)
 
@@ -423,10 +425,10 @@ set(BASE_SRCS
   src/winfonts/winfnt.c
 )
 
-if (UNIX)
-  list(APPEND BASE_SRCS "builds/unix/ftsystem.c")
-elseif (WIN32)
+if (WIN32)
   list(APPEND BASE_SRCS "builds/windows/ftsystem.c")
+elseif (UNIX)
+  list(APPEND BASE_SRCS "builds/unix/ftsystem.c")
 else ()
   list(APPEND BASE_SRCS "src/base/ftsystem.c")
 endif ()
@@ -495,46 +497,6 @@ target_include_directories(
       ${CMAKE_CURRENT_BINARY_DIR}/include/freetype/config
 )
 
-if (EMSCRIPTEN)
-    add_executable(freetype_wasm ${PUBLIC_HEADERS} ${PUBLIC_CONFIG_HEADERS} ${PRIVATE_HEADERS} ${BASE_SRCS})
-    #set_target_properties(freetype_wasm PROPERTIES VERSION ${LIBRARY_VERSION} SOVERSION ${LIBRARY_SOVERSION})
-    target_compile_definitions(freetype_wasm PRIVATE FT2_BUILD_LIBRARY)
-    target_include_directories(freetype_wasm 
-      PUBLIC
-        $<INSTALL_INTERFACE:include/freetype2>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-      PRIVATE 
-        ${CMAKE_CURRENT_BINARY_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_BINARY_DIR}/include/freetype/config
-    )
-  if (ZLIB_FOUND)
-    target_link_libraries(freetype_wasm PRIVATE ${ZLIB_LIBRARIES})
-    target_include_directories(freetype_wasm PRIVATE ${ZLIB_INCLUDE_DIRS})
-  endif ()
-  if (BZIP2_FOUND)
-    target_link_libraries(freetype_wasm PRIVATE ${BZIP2_LIBRARIES})
-    target_include_directories(freetype_wasm PRIVATE ${BZIP2_INCLUDE_DIR}) # not BZIP2_INCLUDE_DIRS
-  endif ()
-  if (PNG_FOUND)
-    target_link_libraries(freetype_wasm PRIVATE ${PNG_LIBRARIES})
-    target_compile_definitions(freetype_wasm PRIVATE ${PNG_DEFINITIONS})
-    target_include_directories(freetype_wasm PRIVATE ${PNG_INCLUDE_DIRS})
-  endif ()
-  if (HarfBuzz_FOUND)
-    target_link_libraries(freetype_wasm PRIVATE ${HarfBuzz_LIBRARY})
-    target_include_directories(freetype_wasm PRIVATE ${HarfBuzz_INCLUDE_DIRS})
-  endif ()
-  if (BROTLIDEC_FOUND)
-    target_link_libraries(freetype_wasm PRIVATE ${BROTLIDEC_LIBRARIES})
-    target_compile_definitions(freetype_wasm PRIVATE ${BROTLIDEC_DEFINITIONS})
-    target_include_directories(freetype_wasm PRIVATE ${BROTLIDEC_INCLUDE_DIRS})
-  endif ()
-    set_target_properties(freetype_wasm PROPERTIES COMPILE_FLAGS " -fPIC -s SIDE_MODULE=1 ")
-    set_target_properties(freetype_wasm PROPERTIES LINK_FLAGS    "-fPIC -s WASM=1 -s SIDE_MODULE=1 -s STANDALONE_WASM --no-entry")
-    set(CMAKE_EXECUTABLE_SUFFIX ".wasm")
-endif()
 
 if (BUILD_FRAMEWORK)
   set_property(SOURCE ${PUBLIC_CONFIG_HEADERS}

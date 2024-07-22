@@ -19,7 +19,7 @@ fi
 
 export TARGET=emscripten
 export PLATFORM=emscripten
-export ARCH=32
+export ARCH=64
 export NO_FORCE=ON
 
 echo "Target: $TARGET"
@@ -29,9 +29,9 @@ echo "Apothecary path: $APOTHECARY_PATH"
 
 ${ROOT}./scripts/build.sh
 
-
 echo "   Build Successful. Now Packaging ..."
 ${ROOT}./scripts/package.sh
 
 echo "   Completed"
+
 

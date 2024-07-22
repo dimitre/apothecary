@@ -9,6 +9,7 @@ docker exec -i emscripten apt install -y build-essential
 docker exec -i emscripten apt install -y autoconf
 docker exec -i emscripten apt install -y automake
 docker exec -i emscripten apt install -y pkgconf
+docker exec -i emscripten apt install -y cmake
 docker exec -i emscripten apt install -y libtool multistrap unzip dos2unix
 docker exec -i emscripten sh -c "echo \$PATH"
 

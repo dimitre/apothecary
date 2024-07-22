@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 #
 # svgtiny
@@ -267,12 +266,12 @@ function build() {
 
 		 cd ..
 	elif [ "$TYPE" == "emscripten" ]; then
-        mkdir -p build_$TYPE
+        mkdir -p build_${TYPE}_${PLATFORM}
         LIBXML2_ROOT="$LIBS_ROOT/libxml2/"
         LIBXML2_INCLUDE_DIR="$LIBS_ROOT/libxml2/include"
-        LIBXML2_LIBRARY="$LIBS_ROOT/libxml2/lib/$TYPE/libxml2.wasm"
-	    cd build_$TYPE
-	    rm -f CMakeCache.txt *.a *.o *.wasm
+        LIBXML2_LIBRARY="$LIBS_ROOT/libxml2/lib/$TYPE/$PLATFORM/libxml2.a"
+	    cd build_${TYPE}_${PLATFORM}
+	    rm -f CMakeCache.txt *.a *.o *.a *.js
 	    $EMSDK/upstream/emscripten/emcmake cmake .. \
 	    	-DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
 	    	-B . \
@@ -283,8 +282,8 @@ function build() {
 			-DDO_XML_INSTALL=ON \
 			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1" \
 			-DCMAKE_C_FLAGS="-DUSE_PTHREADS=1" \
-			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -std=c++${CPP_STANDARD} -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}" \
-            -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -std=c${C_STANDARD} -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE}" \
+			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -std=c++${CPP_STANDARD} -Wno-implicit-function-declaration -fPIC -frtti ${FLAG_RELEASE}" \
+            -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -std=c${C_STANDARD} -Wno-implicit-function-declaration -fPIC -frtti ${FLAG_RELEASE}" \
 			-DCMAKE_CXX_EXTENSIONS=OFF \
 			-DBUILD_SHARED_LIBS=OFF \
 			-DCMAKE_INSTALL_PREFIX=Release \
@@ -295,7 +294,9 @@ function build() {
             -DUSE_XML2=ON \
 	        -DLIBXML2_INCLUDE_DIR=$LIBXML2_INCLUDE_DIR \
 	        -DLIBXML2_LIBRARY=$LIBXML2_LIBRARY
-	  	cmake --build . --config Release 
+	    $EMSDK/upstream/emscripten/emmake make
+        # $EMSDK/upstream/emscripten/emmake make install
+	  	# cmake --build . --config Release 
 	    cd ..
 	fi
 }
@@ -327,11 +328,11 @@ function copy() {
         . "$SECURE_SCRIPT"
         secure $1/lib/$TYPE/$ABI/libsvgtiny.a svgtiny.pkl
 	elif [ "$TYPE" == "emscripten" ]; then
-		mkdir -p $1/lib/$TYPE/$
+		mkdir -p $1/lib/$TYPE/$PLATFORM
 		cp -Rv "include/" $1/ 
-        cp -f "build_${TYPE}/svgtiny_wasm.wasm" $1/lib/$TYPE/svgtiny.wasm        
+        cp -f "build_${TYPE}_$PLATFORM/svgtiny_wasm.a" $1/lib/$TYPE/$PLATFORM/svgtiny.a        
         . "$SECURE_SCRIPT"
-        secure $1/lib/$TYPE/svgtiny.wasm svgtiny.pkl
+        secure $1/lib/$TYPE/$PLATFORM/svgtiny.a svgtiny.pkl
 	elif [ "$TYPE" == "linux" ] || [ "$TYPE" == "linux64" ] || [ "$TYPE" == "linuxaarch64" ] || [ "$TYPE" == "linuxarmv6l" ] || [ "$TYPE" == "linuxarmv7l" ]; then
 		mkdir -p $1/lib/$TYPE/$
 		cp -Rv "include/" $1/ 
@@ -358,13 +359,9 @@ function clean() {
 		if [ -d "build_${TYPE}_${PLATFORM}" ]; then
             rm -r build_${TYPE}_${PLATFORM}
         fi
-	elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
+	elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos|emscripten)$ ]]; then
 		if [ -d "build_${TYPE}_${PLATFORM}" ]; then
             rm -r build_${TYPE}_${PLATFORM}
-        fi
-    elif [ "$TYPE" == "emscripten" ] ; then
-    	if [ -d "build_${TYPE}" ]; then
-            rm -r build_${TYPE}
         fi
 	fi
 }

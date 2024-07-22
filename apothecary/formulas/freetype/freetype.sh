@@ -54,14 +54,6 @@ function build() {
 		    -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
 		    -DCMAKE_CXX_STANDARD_REQUIRED=ON \
 		    -DCMAKE_CXX_EXTENSIONS=OFF \
-            -DFT_DISABLE_ZLIB=FALSE \
-            -DFT_DISABLE_BZIP2=TRUE \
-            -DFT_REQUIRE_BZIP2=FALSE \
-            -DFT_DISABLE_HARFBUZZ=TRUE \
-            -D FT_REQUIRE_ZLIB=TRUE \
-			-D FT_REQUIRE_BZIP2=FALSE \
-			-D FT_REQUIRE_PNG=TRUE \
-			-D FT_REQUIRE_HARFBUZZ=FALSE \
 			-DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
 			-DCMAKE_INSTALL_INCLUDEDIR=include"
 	if [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
@@ -106,7 +98,7 @@ function build() {
             -DBROTLI_ROOT=${LIBBROTLI_ROOT} \
             -DBROTLIDEC_INCLUDE_DIRS=${LIBBROTLI_INCLUDE_DIR} \
             -DBROTLI_INCLUDE_DIR=${LIBBROTLI_INCLUDE_DIR} \
-            -DBROTLIDEC_LIBRARIES=${LIBBROTLI_LIBRARY};${LIBBROTLI_DEC_LIB};${LIBBROTLI_ENC_LIB} \
+            -DBROTLIDEC_LIBRARIES=${LIBBROTLI_LIBRARY}:${LIBBROTLI_DEC_LIB}:${LIBBROTLI_ENC_LIB} \
             -DCMAKE_C_STANDARD=${C_STANDARD} \
             -DDEPLOYMENT_TARGET=${MIN_SDK_VER} \
             -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
@@ -118,10 +110,9 @@ function build() {
 			cmake .. ${DEFS} \
 				${EXTRA_DEFS} \
 				-DFT_DISABLE_BZIP2=TRUE \
-				-DFT_DISABLE_BZIP2=TRUE \
 				-DCMAKE_PREFIX_PATH="${LIBS_ROOT}" \
-				-DCMAKE_INCLUDE_PATH="$LIBBROTLI_INCLUDE_DIR;$LIBPNG_INCLUDE_DIR;$ZLIB_INCLUDE_DIR;" \
-				-DCMAKE_LIBRARY_PATH="$LIBBROTLI_DEC_LIB;${LIBPNG_LIBRARY};${ZLIB_LIBRARY};" \
+				-DCMAKE_INCLUDE_PATH="$LIBBROTLI_INCLUDE_DIR:$LIBPNG_INCLUDE_DIR:$ZLIB_INCLUDE_DIR" \
+				-DCMAKE_LIBRARY_PATH="$LIBBROTLI_DEC_LIB:${LIBPNG_LIBRARY}:${ZLIB_LIBRARY}" \
 				-DCMAKE_TOOLCHAIN_FILE=$APOTHECARY_DIR/toolchains/ios.toolchain.cmake \
 				-DPLATFORM=$PLATFORM \
 				-DCMAKE_BUILD_TYPE=Release \
@@ -211,8 +202,8 @@ function build() {
             -DPNG_LIBRARY=${LIBPNG_LIBRARY} \
             -DPNG_ROOT=${LIBPNG_ROOT} \
             -DBROTLI_ROOT=${LIBBROTLI_ROOT} \
-            -DCMAKE_INCLUDE_PATH="$LIBBROTLI_INCLUDE_DIR;$LIBPNG_INCLUDE_DIR;$ZLIB_INCLUDE_DIR;" \
-            -DCMAKE_LIBRARY_PATH="${LIBBROTLI_LIBRARY};${LIBBROTLI_DEC_LIB};${LIBBROTLI_ENC_LIB};${LIBPNG_LIBRARY};${ZLIB_LIBRARY};" \
+            -DCMAKE_INCLUDE_PATH="$LIBBROTLI_INCLUDE_DIR;$LIBPNG_INCLUDE_DIR;$ZLIB_INCLUDE_DIR" \
+            -DCMAKE_LIBRARY_PATH="${LIBBROTLI_LIBRARY};${LIBBROTLI_DEC_LIB};${LIBBROTLI_ENC_LIB};${LIBPNG_LIBRARY};${ZLIB_LIBRARY}" \
             -DBROTLIDEC_INCLUDE_DIRS=${LIBBROTLI_INCLUDE_DIR} \
             -DBROTLI_INCLUDE_DIR=${LIBBROTLI_INCLUDE_DIR} \
             -DBROTLI_INCLUDE_DIRS=${LIBBROTLI_INCLUDE_DIR} \
@@ -242,8 +233,8 @@ function build() {
             -DPNG_LIBRARY=${LIBPNG_LIBRARY} \
             -DPNG_ROOT=${LIBPNG_ROOT} \
             -DBROTLI_ROOT=${LIBBROTLI_ROOT} \
-            -DCMAKE_INCLUDE_PATH="$LIBBROTLI_INCLUDE_DIR;$LIBPNG_INCLUDE_DIR;$ZLIB_INCLUDE_DIR;" \
-            -DCMAKE_LIBRARY_PATH="${LIBBROTLI_LIBRARY};${LIBBROTLI_DEC_LIB};${LIBBROTLI_ENC_LIB};${LIBPNG_LIBRARY};${ZLIB_LIBRARY};" \
+            -DCMAKE_INCLUDE_PATH="$LIBBROTLI_INCLUDE_DIR;$LIBPNG_INCLUDE_DIR;$ZLIB_INCLUDE_DIR" \
+            -DCMAKE_LIBRARY_PATH="${LIBBROTLI_LIBRARY};${LIBBROTLI_DEC_LIB};${LIBBROTLI_ENC_LIB};${LIBPNG_LIBRARY};${ZLIB_LIBRARY}" \
             -DBROTLIDEC_INCLUDE_DIRS=${LIBBROTLI_INCLUDE_DIR} \
             -DBROTLI_INCLUDE_DIR=${LIBBROTLI_INCLUDE_DIR} \
             -DBROTLI_INCLUDE_DIRS=${LIBBROTLI_INCLUDE_DIR} \
@@ -372,27 +363,43 @@ function build() {
 
 		ZLIB_ROOT="$LIBS_ROOT/zlib/"
         ZLIB_INCLUDE_DIR="$LIBS_ROOT/zlib/include"
-        ZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/zlib.wasm"
+        ZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/$PLATFORM/zlib.a"
 
-        LIBPNG_ROOT="$LIBS_ROOT/libpng/"
-        LIBPNG_INCLUDE_DIR="$LIBS_ROOT/libpng/include"
-        LIBPNG_LIBRARY="$LIBS_ROOT/libpng/lib/$TYPE/libpng.wasm" 
+        LIBPNG_ROOT="${LIBS_ROOT}/libpng/"
+        LIBPNG_INCLUDE_DIR="${LIBS_ROOT}/libpng/include"
+        LIBPNG_LIBRARY="$LIBS_ROOT/libpng/lib/${TYPE}/${PLATFORM}/libpng16.a"
+	    export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}:${LIBPNG_ROOT}/lib/$TYPE/$PLATFORM:${ZLIB_ROOT}/lib/$TYPE/$PLATFORM"
+		
+		pkg-config --modversion libpng
+
         BROTLI="
-			-DFT_REQUIRE_BROTLI=FALSE \
-			-DFT_DISABLE_BROTLI=TRUE"
-        mkdir -p build_$TYPE
-        cd build_$TYPE
-        rm -f CMakeCache.txt *.a *.o *.wasm
+			-DFT_REQUIRE_BROTLI=OFF \
+			-DFT_DISABLE_BROTLI=ON"
+        mkdir -p "build_${TYPE}_${PLATFORM}"
+        cd "build_${TYPE}_${PLATFORM}"
+        rm -f CMakeCache.txt *.a *.o *.a
+        export PATH="${PATH}:${LIBPNG_INCLUDE_DIR}"
 	    $EMSDK/upstream/emscripten/emcmake cmake .. \
 	    	${DEFS} \
 	    	${BROTLI} \
+	    	-DCMAKE_PREFIX_PATH="${LIBS_ROOT}" \
+            -DFT_REQUIRE_ZLIB=ON \
+            -DZLIB_ROOT=${ZLIB_ROOT} \
+            -DZLIB_INCLUDE_DIR=${ZLIB_INCLUDE_DIR} \
+            -DZLIB_INCLUDE_DIRS=${ZLIB_INCLUDE_DIR} \
+            -DZLIB_LIBRARY=${ZLIB_LIBRARY} \
+            -DPNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
+            -DPNG_LIBRARY=${LIBPNG_LIBRARY} \
+            -DPNG_LIBRARIES=${LIBPNG_LIBRARY} \
+            -DPNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
+            -DPNG_PNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
+            -DPNG_LIBRARY=${LIBPNG_LIBRARY} \
+            -DPNG_ROOT=${LIBPNG_ROOT} \
 	    	-DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
     		-DCMAKE_C_STANDARD=${C_STANDARD} \
 			-DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
 			-DCMAKE_CXX_STANDARD_REQUIRED=ON \
-			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -std=c++${CPP_STANDARD} -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE} -I${ZLIB_INCLUDE_DIR} -I${LIBPNG_INCLUDE_DIR}" \
-			-DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -std=c${C_STANDARD} -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE} -I${ZLIB_INCLUDE_DIR} -I${LIBPNG_INCLUDE_DIR}" \
-            -B . \
+			-DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -fPIC -std=c${C_STANDARD} -fvisibility=hidden -Wno-implicit-function-declaration -frtti ${FLAG_RELEASE} -I${ZLIB_INCLUDE_DIR} -I${LIBPNG_INCLUDE_DIR}" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_LIBDIR="lib" \
             -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
@@ -400,21 +407,23 @@ function build() {
             -DCMAKE_C_STANDARD=${C_STANDARD} \
             -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
             -DCMAKE_CXX_STANDARD_REQUIRED=ON \
+            -DCMAKE_INSTALL_PREFIX=Release \
+        	-DFT_DISABLE_BZIP2=TRUE \
+			-DCMAKE_INCLUDE_PATH="${LIBPNG_INCLUDE_DIR}:${ZLIB_INCLUDE_DIR}" \
+			-DCMAKE_LIBRARY_PATH="${LIBPNG_LIBRARY}:${ZLIB_LIBRARY}" \
             -DBUILD_SHARED_LIBS=OFF \
-            -DCMAKE_PREFIX_PATH="${LIBS_ROOT}" \
-            -DZLIB_ROOT=${ZLIB_ROOT} \
-            -DZLIB_INCLUDE_DIR=${ZLIB_INCLUDE_DIR} \
-            -DZLIB_INCLUDE_DIRS=${ZLIB_INCLUDE_DIR} \
-            -DZLIB_LIBRARY=${ZLIB_LIBRARY} \
-            -DFT_DISABLE_PNG=TRUE \
-            -D FT_REQUIRE_PNG=FALSE 
-            # -DPNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
-            # -DPNG_LIBRARY=${LIBPNG_LIBRARY} \
-            # -DPNG_PNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
-            # -DPNG_LIBRARY=${LIBPNG_LIBRARY} \
-            # -DPNG_ROOT=${LIBPNG_ROOT}
+            -DFT_DISABLE_PNG=OFF \
+            -DFT_REQUIRE_PNG=ON \
+            -B . \
+            -G 'Unix Makefiles' 
 
-        cmake --build . --config Release --target install 
+        # cat CMakeCache.txt
+        # cat Makefile
+
+        $EMSDK/upstream/emscripten/emmake make
+        $EMSDK/upstream/emscripten/emmake make install
+
+        # cmake --build . --config Release --target install
         cd ..
 	fi
 }
@@ -457,9 +466,18 @@ function copy() {
 	    . "$SECURE_SCRIPT"
 		secure $1/lib/$TYPE/$ABI/libfreetype.a freetype.pkl
 	elif [ "$TYPE" == "emscripten" ] ; then
-		cp -v "build_${TYPE}/freetype_wasm.wasm" $1/lib/$TYPE/libfreetype.wasm
+		mkdir -p $1/lib/$TYPE/$PLATFORM/
+		cp -v "build_${TYPE}_${PLATFORM}/libfreetype.a" $1/lib/$TYPE/$PLATFORM/libfreetype.a
 		. "$SECURE_SCRIPT"
-		secure $1/lib/$TYPE/libfreetype.wasm freetype.pkl
+		secure $1/lib/$TYPE/$PLATFORM/libfreetype.a freetype.pkl
+
+		cp -v "build_${TYPE}_$PLATFORM/freetype2.pc" $1/lib/$TYPE/$PLATFORM/freetype2.pc
+        PKG_FILE="$1/lib/$TYPE/$PLATFORM/freetype2.pc"
+		sed -i.bak "s|^prefix=.*|prefix=${1}|" "$PKG_FILE"
+		sed -i.bak "s|^exec_prefix=.*|exec_prefix=${1}|" "$PKG_FILE"
+		sed -i.bak "s|^libdir=.*|libdir=${1}/lib/${TYPE}/${PLATFORM}/|" "$PKG_FILE"
+		sed -i.bak "s|^includedir=.*|includedir=${1}/include|" "$PKG_FILE"
+		export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}:$1/lib/$TYPE/$PLATFORM"
 	fi
 
 	# copy license files

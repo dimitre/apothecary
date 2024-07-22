@@ -134,26 +134,32 @@ function build() {
 		cmake --build . --config Release --target install
 		cd ..
 	elif [ "$TYPE" == "emscripten" ] ; then
-		mkdir -p build_$TYPE
-	    cd build_$TYPE
-	    rm -f CMakeCache.txt *.a *.o *.wasm *.js
+		mkdir -p build_${TYPE}_${PLATFORM}
+	    cd build_${TYPE}_${PLATFORM}
+	    rm -f CMakeCache.txt *.a *.o *.a *.js
 	    $EMSDK/upstream/emscripten/emcmake cmake .. \
-	    	-DCMAKE_INSTALL_LIBDIR="build_${TYPE}" \
+	    	-DCMAKE_INSTALL_LIBDIR="lib" \
+	    	-DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
 	    	-DCMAKE_VERBOSE_MAKEFILE=${VERBOSE_MAKEFILE} \
 	    	-D BUILD_SHARED_LIBS=OFF \
 		    -DZLIB_BUILD_EXAMPLES=OFF \
 		    -DSKIP_EXAMPLE=ON \
+		    -G 'Unix Makefiles' \
+		    -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
 	    	-DCMAKE_C_STANDARD=${C_STANDARD} \
 			-DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
 			-DCMAKE_CXX_STANDARD_REQUIRED=ON \
-			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1" \
-			-DCMAKE_C_FLAGS="-DUSE_PTHREADS=1" \
+			-DCMAKE_CXX_FLAGS=" ${FLAG_RELEASE}" \
+			-DCMAKE_C_FLAGS="${FLAG_RELEASE}" \
+			-DCMAKE_PREFIX_PATH="${LIBS_ROOT}" \
 			-DCMAKE_CXX_EXTENSIONS=OFF \
 			-DBUILD_SHARED_LIBS=OFF \
 			-DCMAKE_INSTALL_PREFIX=Release \
-            -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
-            -DCMAKE_INSTALL_INCLUDEDIR=include 
-	  	cmake --build . --target install --config Release 
+            -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include 
+        #     -DCMAKE_INSTALL_INCLUDEDIR=include 
+        # $EMSDK/upstream/emscripten/emmake make
+        # $EMSDK/upstream/emscripten/emmake make install
+	 	cmake --build . --config Release --target install 
 	    cd ..
     elif [ "$TYPE" == "linux" ] || [ "$TYPE" == "linux64" ] || [ "$TYPE" == "linuxaarch64" ] || [ "$TYPE" == "linuxarmv6l" ] || [ "$TYPE" == "linuxarmv7l" ] || [ "$TYPE" == "msys2" ]; then
 	    
@@ -183,51 +189,48 @@ function build() {
             -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE \
             -DENABLE_VISIBILITY=OFF \
             -DCMAKE_INSTALL_INCLUDEDIR=include 
-	    cmake --build . --config Release
+	    cmake --build . --config Release 
+	    ls -a
 	    cd ..
 	fi
 }
 
 # executed inside the lib src dir, first arg $1 is the dest libs dir root
 function copy() {
+	mkdir -p $1/include
+	. "$SECURE_SCRIPT"
 	if [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
-		mkdir -p $1/include    
-	    mkdir -p $1/lib/$TYPE
 		cp -Rv "build_${TYPE}_${PLATFORM}/Release/include/"* $1/include/ > /dev/null 2>&1
 		mkdir -p $1/lib/$TYPE/$PLATFORM/
         cp -v "build_${TYPE}_${PLATFORM}/Release/lib/libz.a" $1/lib/$TYPE/$PLATFORM/zlib.a
-        . "$SECURE_SCRIPT"
         secure $1/lib/$TYPE/$PLATFORM/zlib.a 
-	elif [ "$TYPE" == "vs" ] ; then
-		mkdir -p $1/include    
-	    mkdir -p $1/lib/$TYPE
+	elif [ "$TYPE" == "vs" ] ; then    
 		cp -Rv "build_${TYPE}_${ARCH}/Release/include/"* $1/include/ > /dev/null 2>&1
 		mkdir -p $1/lib/$TYPE/$PLATFORM/
         cp -v "build_${TYPE}_${ARCH}/Release/z.lib" $1/lib/$TYPE/$PLATFORM/zlib.lib > /dev/null 2>&1
-        . "$SECURE_SCRIPT"
         secure $1/lib/$TYPE/$PLATFORM/zlib.lib
     elif [ "$TYPE" == "android" ] ; then
 		mkdir -p $1/lib/$TYPE/$ABI/
-		mkdir -p $1/include
 		cp -v "build_${TYPE}_${ABI}/Release/lib/libz.a" $1/lib/$TYPE/$ABI/zlib.a
 		cp -RT "build_${TYPE}_${ABI}/Release/include/" $1/include
-		. "$SECURE_SCRIPT"
         secure $1/lib/$TYPE/$ABI/zlib.a
 	elif [ "$TYPE" == "emscripten" ] ; then
-		mkdir -p $1/include
-		mkdir -p $1/lib
-		cp -Rv "build_${TYPE}/Release/include/"* $1/include/
-		mkdir -p $1/lib/$TYPE
-		cp -v "build_${TYPE}/zlib_wasm.wasm" $1/lib/$TYPE/zlib.wasm
-		. "$SECURE_SCRIPT"
-        secure $1/lib/$TYPE/zlib.wasm
+		cp -Rv "build_${TYPE}_${PLATFORM}/Release/include/"* $1/include/
+		mkdir -p $1/lib/$TYPE/$PLATFORM
+		cp -v "build_${TYPE}_$PLATFORM/libz.a" $1/lib/$TYPE/$PLATFORM/zlib.a
+        secure $1/lib/$TYPE/$PLATFORM/zlib.a
+        cp -v "build_${TYPE}_$PLATFORM/Release/share/pkgconfig/zlib.pc" $1/lib/$TYPE/$PLATFORM/zlib.pc
+        PKG_FILE="$1/lib/$TYPE/$PLATFORM/zlib.pc"
+		sed -i.bak "s|^prefix=.*|prefix=${1}|" "$PKG_FILE"
+		sed -i.bak "s|^exec_prefix=.*|exec_prefix=${1}|" "$PKG_FILE"
+		sed -i.bak "s|^libdir=.*|libdir=${1}/lib/${TYPE}/${PLATFORM}/|" "$PKG_FILE"
+		sed -i.bak "s|^includedir=.*|includedir=${1}/include|" "$PKG_FILE"
+		export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}:$1/lib/$TYPE/$PLATFORM"
+
     elif [ "$TYPE" == "linux" ] || [ "$TYPE" == "linux64" ] || [ "$TYPE" == "linuxaarch64" ] || [ "$TYPE" == "linuxarmv6l" ] || [ "$TYPE" == "linuxarmv7l" ] || [ "$TYPE" == "msys2" ]; then
-		mkdir -p $1/include    
-	    mkdir -p $1/lib/$TYPE
 		cp -Rv "build_${TYPE}_${ARCH}/Release/include/"* $1/include/ > /dev/null 2>&1
 		mkdir -p $1/lib/$TYPE/$ARCH/
         cp -v "build_${TYPE}_${ARCH}/Release/z.a" $1/lib/$TYPE/$PLATFORM/zlib.a > /dev/null 2>&1
-        . "$SECURE_SCRIPT"
         secure $1/lib/$TYPE/$PLATFORM/zlib.a
 	else
 		make install
@@ -243,11 +246,7 @@ function copy() {
 
 # executed inside the lib src dir
 function clean() {
-	if [ "$TYPE" == "vs" ] ; then
-		if [ -d "build_${TYPE}_${PLATFORM}" ]; then
-            rm -r build_${TYPE}_${PLATFORM}     
-        fi
-	elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
+	if [[ "$TYPE" =~ ^(vs|osx|ios|tvos|xros|catos|watchos|emscripten)$ ]]; then
 		if [ -d "build_${TYPE}_${PLATFORM}" ]; then
             rm -r build_${TYPE}_${PLATFORM}     
         fi
@@ -255,10 +254,6 @@ function clean() {
 		if [ -d "build_${TYPE}_${ABI}" ]; then
 			rm -r build_${TYPE}_${ABI}     
 		fi
-    elif [ "$TYPE" == "emscripten" ] ; then
-    	if [ -d "build_${TYPE}" ]; then
-            rm -r build_${TYPE}     
-        fi
     elif [ "$TYPE" == "linux" ] || [ "$TYPE" == "linux64" ] || [ "$TYPE" == "linuxaarch64" ] || [ "$TYPE" == "linuxarmv6l" ] || [ "$TYPE" == "linuxarmv7l" ] || [ "$TYPE" == "msys2" ]; then
 		if [ -d "build_${TYPE}_${ARCH}" ]; then
 			rm -r build_${TYPE}_${ARCH}     
