@@ -270,8 +270,15 @@ function build() {
         LIBXML2_ROOT="$LIBS_ROOT/libxml2/"
         LIBXML2_INCLUDE_DIR="$LIBS_ROOT/libxml2/include"
         LIBXML2_LIBRARY="$LIBS_ROOT/libxml2/lib/$TYPE/$PLATFORM/libxml2.a"
+
+        ZLIB_ROOT="$LIBS_ROOT/zlib/"
+        ZLIB_INCLUDE_DIR="$LIBS_ROOT/zlib/include"
+        ZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/$PLATFORM/zlib.a"
+
+        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}:${ZLIB_ROOT}/lib/$TYPE/$PLATFORM:${LIBXML2_ROOT}/lib/$TYPE/$PLATFORM"
+
 	    cd build_${TYPE}_${PLATFORM}
-	    rm -f CMakeCache.txt *.a *.o *.a *.js
+	    rm -f CMakeCache.txt *.a *.o *.js
 	    $EMSDK/upstream/emscripten/emcmake cmake .. \
 	    	-DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
 	    	-B . \
@@ -280,10 +287,8 @@ function build() {
 			-DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
 			-DCMAKE_CXX_STANDARD_REQUIRED=ON \
 			-DDO_XML_INSTALL=ON \
-			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1" \
-			-DCMAKE_C_FLAGS="-DUSE_PTHREADS=1" \
-			-DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 -std=c++${CPP_STANDARD} -Wno-implicit-function-declaration -fPIC -frtti ${FLAG_RELEASE}" \
-            -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1 -std=c${C_STANDARD} -Wno-implicit-function-declaration -fPIC -frtti ${FLAG_RELEASE}" \
+			-DCMAKE_CXX_FLAGS="-std=c++${CPP_STANDARD} ${FLAG_RELEASE}" \
+            -DCMAKE_C_FLAGS="-std=c${C_STANDARD} ${FLAG_RELEASE}" \
 			-DCMAKE_CXX_EXTENSIONS=OFF \
 			-DBUILD_SHARED_LIBS=OFF \
 			-DCMAKE_INSTALL_PREFIX=Release \
@@ -310,38 +315,32 @@ function copy() {
 	mkdir -p $1/lib/$TYPE
 	cp -Rv include/* $1/include
 
+	. "$SECURE_SCRIPT"
+
 	if [ "$TYPE" == "vs" ] ; then
 		mkdir -p $1/lib/$TYPE/$PLATFORM/
 		cp -Rv "build_${TYPE}_${ARCH}/include/" $1/
 		cp -v "build_${TYPE}_${ARCH}/Release/svgtiny.lib" $1/lib/$TYPE/$PLATFORM/svgtiny.lib
         cp -v "build_${TYPE}_${ARCH}/Debug/svgtiny.lib" $1/lib/$TYPE/$PLATFORM/svgtinyD.lib
-        . "$SECURE_SCRIPT"
         secure $1/lib/$TYPE/$PLATFORM/libsvgtiny.a svgtiny.pkl
 	elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
 		mkdir -p $1/lib/$TYPE/$PLATFORM/
 		cp -v "build_${TYPE}_${PLATFORM}/libsvgtiny.a" $1/lib/$TYPE/$PLATFORM/libsvgtiny.a
-		. "$SECURE_SCRIPT"
         secure $1/lib/$TYPE/$PLATFORM/libsvgtiny.a svgtiny.pkl
 	elif [ "$TYPE" == "android" ] ; then
 	    mkdir -p $1/lib/$TYPE/$ABI
         cp -f "build_${TYPE}_${ABI}/libsvgtiny.a" $1/lib/$TYPE/$ABI/libsvgtiny.a
-        . "$SECURE_SCRIPT"
         secure $1/lib/$TYPE/$ABI/libsvgtiny.a svgtiny.pkl
 	elif [ "$TYPE" == "emscripten" ]; then
 		mkdir -p $1/lib/$TYPE/$PLATFORM
-		cp -Rv "include/" $1/ 
         cp -f "build_${TYPE}_$PLATFORM/svgtiny_wasm.a" $1/lib/$TYPE/$PLATFORM/svgtiny.a        
-        . "$SECURE_SCRIPT"
         secure $1/lib/$TYPE/$PLATFORM/svgtiny.a svgtiny.pkl
 	elif [ "$TYPE" == "linux" ] || [ "$TYPE" == "linux64" ] || [ "$TYPE" == "linuxaarch64" ] || [ "$TYPE" == "linuxarmv6l" ] || [ "$TYPE" == "linuxarmv7l" ]; then
-		mkdir -p $1/lib/$TYPE/$
-		cp -Rv "include/" $1/ 
+		mkdir -p $1/lib/$TYPE/${ARCH}
         cp -f "build_${TYPE}_${ARCH}/libsvgtiny.a" $1/lib/$TYPE/libsvgtiny.a
-        . "$SECURE_SCRIPT"
         secure $1/lib/$TYPE/libsvgtiny.a svgtiny.pkl
     elif [ "$TYPE" == "msys2" ] ; then
 		cp -Rv libsvgtiny.a $1/lib/$TYPE/libsvgtiny.a
-		. "$SECURE_SCRIPT"
         secure $1/lib/$TYPE/libsvgtiny.a svgtiny.pkl
 	fi
 
