@@ -81,7 +81,10 @@ function build() {
             -DCMAKE_INSTALL_INCLUDEDIR=include \
             -DZLIB_ROOT=${ZLIB_ROOT} \
             -DZLIB_LIBRARY=${ZLIB_LIBRARY} \
-            -DZLIB_INCLUDE_DIRS=${ZLIB_INCLUDE_DIR} "
+            -DZLIB_INCLUDE_DIRS=${ZLIB_INCLUDE_DIR} \
+            -DPNG_ROOT=${LIBPNG_ROOT} \
+            -DPNG_PNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
+            -DPNG_LIBRARY=${LIBPNG_LIBRARY} "
       if [[ "$ARCH" =~ ^(arm64|SIM_arm64|arm64_32)$ ]]; then
         EXTRA_DEFS="-DCV_ENABLE_INTRINSICS=OFF -DENABLE_SSE=OFF -DENABLE_SSE2=OFF -DENABLE_SSE3=OFF -DENABLE_SSE41=OFF -DENABLE_SSE42=OFF -DENABLE_SSSE3=OFF -DWITH_CAROTENE=OFF"
       else 
@@ -93,10 +96,10 @@ function build() {
       -DCMAKE_TOOLCHAIN_FILE=$APOTHECARY_DIR/toolchains/ios.toolchain.cmake \
       -DPLATFORM=$PLATFORM \
       -DENABLE_BITCODE=OFF \
-      -DENABLE_ARC=OFF \
+      -DENABLE_ARC=ON \
       -DDEPLOYMENT_TARGET=${MIN_SDK_VER} \
       -DENABLE_VISIBILITY=OFF \
-      -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE \
+      -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
       -DENABLE_FAST_MATH=OFF \
       -DCMAKE_CXX_FLAGS="-fvisibility-inlines-hidden -stdlib=libc++ -fPIC -Wno-implicit-function-declaration " \
       -DCMAKE_C_FLAGS="-fvisibility-inlines-hidden -stdlib=libc++ -fPIC -Wno-implicit-function-declaration" \
@@ -163,7 +166,7 @@ function build() {
       -DWITH_ADE=OFF \
       -DWITH_TBB=OFF \
       -DWITH_TIFF=OFF \
-      -DWITH_OPENEXR=OFF \
+      -DWITH_OPENEXR=ON \
       -DWITH_OPENGL=OFF \
       -DWITH_OPENVX=OFF \
       -DWITH_1394=OFF \
@@ -213,7 +216,7 @@ function build() {
     cd ..
 
   elif [ "$TYPE" == "vs" ] ; then
-    echoInfo "building $TYPE | $ARCH | $VS_VER | vs: $VS_VER_GEN - "${PLATFORM}""
+    echoInfo "building $TYPE | $ARCH | $VS_VER | vs: $VS_VER_GEN"
     echoInfo "--------------------"
     GENERATOR_NAME="Visual Studio ${VS_VER_GEN}" 
     mkdir -p "build_${TYPE}_${PLATFORM}"
@@ -330,7 +333,7 @@ function build() {
         -DCV_DISABLE_OPTIMIZATION=OFF"
 
       if [[ ${ARCH} == "arm64ec" || "${ARCH}" == "arm64" ]]; then
-        EXTRA_DEFS="-DCV_ENABLE_INTRINSICS=OFF -DENABLE_SSE=OFF -DENABLE_SSE2=OFF -DENABLE_SSE3=OFF -DENABLE_SSE41=OFF -DENABLE_SSE42=OFF -DENABLE_SSSE3=OFF -DBUILD_opencv_rgbd=OFF "
+        EXTRA_DEFS="-DCV_ENABLE_INTRINSICS=OFF -DENABLE_SSE=OFF -DENABLE_SSE2=OFF -DENABLE_SSE3=OFF -DENABLE_SSE41=OFF -DENABLE_SSE42=OFF -DENABLE_SSSE3=OFF -DBUILD_opencv_rgbd=OFF"
       else 
         EXTRA_DEFS="-DCV_ENABLE_INTRINSICS=ON -DENABLE_SSE=ON -DENABLE_SSE2=ON -DENABLE_SSE3=ON -DENABLE_SSE41=ON -DENABLE_SSE42=ON -DENABLE_SSSE3=ON"
       fi
@@ -352,10 +355,12 @@ function build() {
         -DZLIB_ROOT=${ZLIB_ROOT} \
         -DZLIB_LIBRARY=${ZLIB_LIBRARY} \
         -DZLIB_INCLUDE_DIRS=${ZLIB_INCLUDE_DIR} \
+        -DBUILD_PNG=OFF \
         -DPNG_ROOT=${LIBPNG_ROOT} \
         -DPNG_PNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
         -DPNG_LIBRARY=${LIBPNG_LIBRARY} \
-        -DBUILD_WITH_STATIC_CRT=OFF 
+        -DBUILD_WITH_STATIC_CRT=OFF
+
      cmake --build . --target install --config Debug
      cmake .. ${DEFS} \
         -A "${PLATFORM}" \
@@ -373,6 +378,7 @@ function build() {
         -DZLIB_ROOT=${ZLIB_ROOT} \
         -DZLIB_LIBRARY=${ZLIB_LIBRARY} \
         -DZLIB_INCLUDE_DIRS=${ZLIB_INCLUDE_DIR} \
+        -DBUILD_PNG=OFF \
         -DPNG_ROOT=${LIBPNG_ROOT} \
         -DPNG_PNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
         -DPNG_LIBRARY=${LIBPNG_LIBRARY} \
@@ -640,6 +646,7 @@ function build() {
       -DWITH_LAPACK=OFF \
       -DWITH_ITT=OFF \
       -DBUILD_ZLIB=ON \
+      -DBUILD_PNG=OFF \
       -DWITH_WEBP=OFF \
       -DWITH_VTK=OFF \
       -DWITH_PVAPI=OFF \
@@ -695,8 +702,9 @@ function copy() {
     mkdir -p $1/lib/$TYPE/$PLATFORM
     cp -v "build_${TYPE}_${PLATFORM}/Release/lib/opencv4/3rdparty/"*.a $1/lib/$TYPE/$PLATFORM/
     cp -v "build_${TYPE}_${PLATFORM}/Release/lib/"*.a $1/lib/$TYPE/$PLATFORM
+    cp -v "build_${TYPE}_${PLATFORM}/Release/lib/"*.dylib $1/lib/$TYPE/$PLATFORM
 
-    cp -Rv "build_${TYPE}_${PLATFORM}/Release/include/opencv4" $1/include/
+    cp -Rv "build_${TYPE}_${PLATFORM}/Release/include/opencv4/" $1/include/
 
     cp -Rv "build_${TYPE}_${PLATFORM}/Release/share/opencv4/"* $1/etc
     cp -Rv "build_${TYPE}_${PLATFORM}/Release/share/licenses/"* $1/license
