@@ -565,38 +565,39 @@ if [ "$TYPE" = "vs" ]; then
     fi
 
     if [ -z ${CALLING_CONVENTION_TYPE+x} ]; then
-        CALLING_CONVENTION="Gz"
+        CALLING_CONVENTION="Gd"
     else
-        CALLING_CONVENTION="Gz"
+        CALLING_CONVENTION="${CALLING_CONVENTION_TYPE}"
     fi
 
     if [ $CALLING_CONVENTION == "Gz" ]; then
         CALLING_CONVENTION="/Gz" 
         echoVerbose "CALLING_CONVENTION ${MT_TYPE} __stdcall"
-    elif [ $MULTITHREADED_TYPE == "Gd" ]; then
+    elif [ $CALLING_CONVENTION == "Gd" ]; then
         CALLING_CONVENTION="/Gd"
         echoVerbose "CALLING_CONVENTION ${MT_TYPE} __cdecl"
-    elif [ $MULTITHREADED_TYPE == "Gr" ]; then
+    elif [ $CALLING_CONVENTION == "Gr" ]; then
         CALLING_CONVENTION="/Gr"
         echoVerbose "CALLING_CONVENTION ${MT_TYPE} __fastcall (/Gr)"
-    elif [ $MULTITHREADED_TYPE == "Gv" ]; then
+    elif [ $CALLING_CONVENTION == "Gv" ]; then
         CALLING_CONVENTION="/Gv"
         echoVerbose "CALLING_CONVENTION ${MT_TYPE} __vectorcall (/Gv)"
     fi
+
     
     if [ $VS_COMPILER == "LLVM" ]; then
         export VS_C_FLAGS="-Wno-error" # warnings will not be treated as errors
         export EXCEPTION_FLAGS=""
-        export FLAGS_RELEASE="-O3"
-        export FLAGS_DEBUG="-O0"
+        export FLAGS_RELEASE="-O3 -DUNICODE -D_UNICODE"
+        export FLAGS_DEBUG="-O0 -DUNICODE -D_UNICODE"
     else
         if [ $ARCH == "arm64ec" ]; then              
             export VS_C_FLAGS="/Gy /GL- /guard:cf"
         else
             export VS_C_FLAGS="/GL-"
         fi
-        export FLAGS_RELEASE="${MT_TYPE} ${CALLING_CONVENTION} /O2"
-        export FLAGS_DEBUG="${MT_TYPE}d ${CALLING_CONVENTION} /Od"
+        export FLAGS_RELEASE="${MT_TYPE} ${CALLING_CONVENTION} /O2 /DNDEBUG -DUNICODE -D_UNICODE"
+        export FLAGS_DEBUG="${MT_TYPE}d ${CALLING_CONVENTION} /Od /DDEBUG -DUNICODE -D_UNICODE"
         export EXCEPTION_FLAGS="/EHsc"
     fi
 
