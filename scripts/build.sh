@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+# set -e
 # capture failing exits in commands obscured behind a pipe
 set -o pipefail
 
@@ -7,6 +7,10 @@ if [ -z "${NO_FORCE+x}" ]; then
     export FORCE="-f"
 else
     export FORCE=""
+fi
+
+if [ -z "${ARCH+x}" ]; then
+    echo "Build: ARCH is set to: $ARCH"
 fi
 
 if [ -z "${PTHREADS_ENABLED+x}" ]; then
@@ -227,6 +231,10 @@ if [ "$TARGET" == "linux" ]; then
         export CC="gcc-6 -fPIE"
         export CXX="g++-6 -std=c++14 -fPIE"
         export COMPILER="g++6 -std=c++14 -fPIE"
+    elif [ "$OPT" == "gcc14" ]; then
+        export CC="gcc-14 -fPIE"
+        export CXX="g++-14 -std=c++23 -fPIE"
+        export COMPILER="g++14 -std=c++23 -fPIE"
     fi
 fi
 
