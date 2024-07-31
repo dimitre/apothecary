@@ -169,7 +169,7 @@ CON_YELLOW_GREEN="\033[33m"
 CON_GREEN="\033[32m"
 
 # used to filter out bad build types
-VALID_TYPES=( "osx" "linux" "linux64" "linuxarmv6l" "linuxarmv7l" "linuxaarch64" "vs" "msys2" "ios" "tvos" "xros" "watchos" "catos" "android" "emscripten" )
+VALID_TYPES=( "osx" "linux" "linux64" "linuxarmv6l" "linuxarmv7l" "linuxaarch64" "vs" "msys2" "ios" "tvos" "xros" "watchos" "catos" "android" "emscripten" "macos" )
 
 
 PKG_CONFIG_PATH=${PKG_CONFIG_PATH:-}
@@ -818,7 +818,7 @@ if [ "$TYPE" = "emscripten" ]; then
     else
         PTHREADS_FLAG=""
     fi
-    export FLAG_RELEASE="-DWASM=ON -DNDEBUG -Os ${PTHREADS_FLAG} -fPIC ${PLATFORM_FLAG} -fvisibility=hidden -Wno-implicit-function-declaration -frtti -fno-exceptions"
+    export FLAG_RELEASE="-DWASM=ON -DNDEBUG -Os ${PTHREADS_FLAG} -fPIC ${PLATFORM_FLAG} -fvisibility=hidden -Wno-implicit-function-declaration -frtti"
 	EMSCRIPTEN_SCRIPT="$(realpath "$APOTHECARY_DIR/../scripts/emscripten/setup.sh")"
 	. "$EMSCRIPTEN_SCRIPT"
 fi
