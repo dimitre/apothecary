@@ -342,7 +342,7 @@ trapError() {
 #### PARSE COMMANDLINE
 
 # from http://www.mkssoftware.com/docs/man1/getopts.1.asp
-while getopts t:a:b:d:s:j:m:c:hgvfpewy opt ; do
+while getopts t:a:b:d:s:j:m:c:hgvxfpewy opt ; do
 	case "$opt" in
 		t) # set the library build type
 		   export TYPE="$OPTARG" ;;
@@ -803,7 +803,7 @@ if [ "$TYPE" = "emscripten" ]; then
     export CPP_STANDARD=17
     if [ $ARCH == 64 ] ; then
         export PLATFORM="WASM64"
-        export PLATFORM_FLAG="-DMEMORY64"
+        export PLATFORM_FLAG="-DMEMORY64 -matomics -mbulk-memory"
         echo "Emscripten: ARCH:${ARCH}"
     else
         export PLATFORM="WASM"
@@ -818,7 +818,7 @@ if [ "$TYPE" = "emscripten" ]; then
     else
         PTHREADS_FLAG=""
     fi
-    export FLAG_RELEASE="-DWASM=ON -DNDEBUG -Os ${PTHREADS_FLAG} -fPIC ${PLATFORM_FLAG} -fvisibility=hidden -Wno-implicit-function-declaration -frtti -fexceptions -fwasm-exceptions"
+    export FLAG_RELEASE="-DWASM=ON -DNDEBUG -Os ${PTHREADS_FLAG} -fPIC ${PLATFORM_FLAG} -fvisibility=hidden -Wno-implicit-function-declaration -frtti -fno-exceptions"
 	EMSCRIPTEN_SCRIPT="$(realpath "$APOTHECARY_DIR/../scripts/emscripten/setup.sh")"
 	. "$EMSCRIPTEN_SCRIPT"
 fi
