@@ -14,9 +14,9 @@ FORMULA_TYPES=( "vs" "osx" "ios" "xros" )
 FORMULA_DEPENDS=( "openssl" "zlib" )
 
 # define the version by sha
-VER=8.8.0
-VER_D=8_8_0
-SHA1=27b90781ec6353d9b52e88e4802c7436b1ed0529
+VER=8.9.1
+VER_D=8_9_1
+SHA1=9bcf387f274ae96ad591115d9f9f23700ec76ceb
 
 # tools for git use
 GIT_URL=https://github.com/curl/curl
@@ -87,11 +87,17 @@ function build() {
         cd "build_${TYPE}_${ARCH}"
         rm -f CMakeCache.txt *.a *.o *.lib
 
+        OPENSSL_ROOT="$LIBS_ROOT/openssl/"
+        OPENSSL_INCLUDE_DIR="$LIBS_ROOT/openssl/include"
+        OPENSSL_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/$PLATFORM/openssl.lib"
+        OPENSSL_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/$PLATFORM/libcrypto.lib"
+
         ZLIB_ROOT="$LIBS_ROOT/zlib/"
         ZLIB_INCLUDE_DIR="$LIBS_ROOT/zlib/include"
         ZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/$PLATFORM/zlib.lib"
 
-        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}:${OF_LIBS_OPENSSL}/lib/$TYPE/$PLATFORM:${ZLIB_ROOT}/lib/$TYPE/$PLATFORM"
+
+        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig;${PKG_CONFIG_PATH};${OF_LIBS_OPENSSL}/lib/$TYPE/$PLATFORM;${ZLIB_ROOT}/lib/$TYPE/$PLATFORM"
 
         DEFS="-DLIBRARY_SUFFIX=${ARCH} \
             -DCMAKE_BUILD_TYPE=Release \
@@ -104,15 +110,21 @@ function build() {
             -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
             -DCMAKE_INSTALL_INCLUDEDIR=include"              
         cmake .. ${DEFS} \
-            -DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1" \
+            -DCMAKE_CXX_FLAGS="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_RELEASE} ${EXCEPTION_FLAGS}" \
             -DCMAKE_C_FLAGS="-DUSE_PTHREADS=1" \
-            -DCMAKE_CXX_FLAGS_RELEASE="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_RELEASE} ${EXCEPTION_FLAGS}" \
+            -DCMAKE_CXX_FLAGS_RELEASE="-DUSE_PTHREADS=1 " \
             -DCMAKE_C_FLAGS_RELEASE="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_RELEASE} ${EXCEPTION_FLAGS}" \
+            -DCMAKE_CPP_FLAGS="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_RELEASE} ${EXCEPTION_FLAGS}" \
             -DCMAKE_CXX_EXTENSIONS=OFF \
             -DBUILD_SHARED_LIBS=OFF \
+            -DCURL_TARGET_WINDOWS_VERSION=${CMAKE_WIN_SDK_HEX} \
             -DCMAKE_BUILD_TYPE=Release \
             -DCURL_STATICLIB=ON \
             -DBUILD_STATIC_LIBS=ON \
+            -DBUILD_STATIC_CURL=ON \
+            -DCURL_STATICLIB=ON \
+            -DBUILD_STATIC_LIBS=ON \
+            -DENABLE_UNICODE=ON \
             -DCURL_USE_OPENSSL=ON \
             -DUSE_SSLEAY=ON \
             -DUSE_OPENSSL=ON \
@@ -255,6 +267,7 @@ function build() {
             -DBUILD_SHARED_LIBS=OFF \
             -DCURL_STATICLIB=ON \
             -DBUILD_STATIC_LIBS=ON \
+            -DENABLE_UNICODE=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=Release \
             -DDEPLOYMENT_TARGET=${MIN_SDK_VER} \

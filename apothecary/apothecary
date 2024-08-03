@@ -186,8 +186,14 @@ fi
 # -x changes to visual studio express
 VS_BUILD_TOOL=devenv
 WIN10_INSTALLED_SDK_2019=10.0.190410.0
+
+
 WIN10_INSTALLED_SDK_2022=10.0.20348.0
+WIN10_INSTALLED_SDK_2022_HEX=0x0A004F5C
+
 WIN11_INSTALLED_SDK_2022=10.0.22621.0
+WIN11_INSTALLED_SDK_2022_HEX=0x0A00586D
+
 
 
 # nice, detailed help message
@@ -350,8 +356,6 @@ while getopts t:a:b:d:s:j:m:c:hgvxfpewy opt ; do
 		    export ARCH=$OPTARG
             if [ -z "${ARCH+x}" ]; then
                 echo "No ARCH argument provided"
-            else
-                echo "ARCH argument: ${ARCH}"
             fi
             ;;
 		b) # set the build dir
@@ -396,8 +400,6 @@ shift $(expr $OPTIND - 1)
 if [ -z "${ARCH+x}" ]; then
     echo "No ARCH argument provided - setting to 64"
     ARCH=64
-else
-    echo "ARCH argument: ${ARCH}"
 fi
 
 # verbose mode bool
@@ -423,13 +425,13 @@ if [ -z "${CPP_STANDARD+x}" ]; then
 fi
 
 if [ -z "${VS_TYPE+x}" ]; then # Professional # Enterprise # Community
-    VS_TYPE=Community 
+    export VS_TYPE=Community 
 fi
 if [ -z "${VS_COMPILER+x}" ]; then # MSVC / # Clang LLVM 
-    VS_COMPILER=MSVC 
+    export VS_COMPILER=MSVC 
 fi
 if [ -z "${VS_HOST+x}" ]; then
-    VS_HOST=amd64 
+    export VS_HOST=amd64 
 fi
 TARGET_WIN_11=0
 
@@ -542,8 +544,8 @@ if [ "$TYPE" = "vs" ]; then
     if [ $ARCH == "ARM64EC" ] || [ $ARCH == "arm64EC" ]; then
         export ARCH="arm64ec"
     fi
-    if [ $ARCH == "x86_64" ] || [ $ARCH == "X86_64" ]; then
-        export ARCH=x86_64
+    if [ $ARCH == "x86_64" ] || [ $ARCH == "X86_64" ] || [ $ARCH == 64 ] ; then
+        export ARCH=64
     fi
     if [ -z ${VS_VER+x} ]; then 
         if [ $ARCH == "arm64" ] || [ $ARCH == "arm64ec" ]; then
@@ -556,24 +558,18 @@ if [ "$TYPE" = "vs" ]; then
     VS_64_BIT_ENV='VC\vcvarsall'
     if [ -z ${PLATFORM+x} ]; then
         if [ $ARCH == 32 ]; then
-            export PLATFORM=x86
-            export CROSS_TOOL="amd64_x86"
+            PLATFORM=x86
         elif [ $ARCH == 64 ] || [ $ARCH == "x86_64" ]; then
-            export PLATFORM=x64
-            export CROSS_TOOL="amd64"
+            PLATFORM=x64
         elif [ $ARCH == "arm64" ]; then
-            export PLATFORM=x64
-            export CROSS_TOOL="all"
+            PLATFORM=x64
         elif [ $ARCH == "arm64ec" ]; then
-            export PLATFORM=x64
-            export CROSS_TOOL="all"
+            PLATFORM=x64
         elif [ $ARCH == "arm" ]; then
-            export PLATFORM=x64
-            export CROSS_TOOL="all"
+            PLATFORM=x64
         else
         	echo "ARCH not set $ARCH"
-        	export PLATFORM=x64
-            export CROSS_TOOL="all"
+        	PLATFORM=x64
         fi        
     fi
     
@@ -582,10 +578,10 @@ if [ "$TYPE" = "vs" ]; then
         MULTITHREADED_TYPE="MD"
     fi
     if [ $MULTITHREADED_TYPE == "MD" ]; then
-        export MT_TYPE="/MD"
+        MT_TYPE="/MD"
         echoVerbose "MULTITHREADED_TYPE MD"
     elif [ $MULTITHREADED_TYPE == "MT" ]; then
-        export MT_TYPE="/MT"
+        MT_TYPE="/MT"
         echoVerbose "MULTITHREADED_TYPE MT"
     fi
 
@@ -668,29 +664,28 @@ if [ "$TYPE" = "vs" ]; then
         fi
     fi
     if [ $ARCH == 32 ] ; then
+        export PLATFORM="Win32"
         export BUILD_PLATFORM="x86"
-    elif [ $ARCH == 64 ] ; then
+        export CROSS_TOOL="amd64_x86"
+    elif [ $ARCH == 64 ] || [ $ARCH == "x86_64" ]; then
+        export PLATFORM="x64"
         export BUILD_PLATFORM="x64"
+        export CROSS_TOOL="amd64"
     elif [ $ARCH == "arm64" ] ; then
+        export PLATFORM="ARM64"
         export BUILD_PLATFORM="arm64"
+        export CROSS_TOOL="all"
     elif [ $ARCH == "arm64ec" ] ; then
+        export PLATFORM="ARM64EC"
         export BUILD_PLATFORM="arm64"
+        export CROSS_TOOL="all"
     elif [ $ARCH == "arm" ]; then
+        export PLATFORM="ARM"
         export BUILD_PLATFORM="arm"
+        export CROSS_TOOL="all"
     else
         echoError "Apothecary -a not a valid passed architecture:[${ARCH}]"
         exit;
-    fi 
-    if [ $ARCH == 32 ] ; then
-        export PLATFORM="Win32"
-    elif [ $ARCH == 64 ] ; then
-        export PLATFORM="x64"
-    elif [ $ARCH == "arm64" ] ; then
-        export PLATFORM="ARM64"
-    elif [ $ARCH == "arm64ec" ] ; then
-        export PLATFORM="ARM64EC"
-    elif [ $ARCH == "arm" ]; then
-        export PLATFORM="ARM"
     fi 
 	if [ $ARCH == "arm64" ] || [ $ARCH == "arm64ec" ] || [ $ARCH == "ARM" ]; then
 		VS_VARS_PATH=$(cygpath -wa "$VS_BASE_PATH/VC/Auxiliary/Build/vcvarsall.bat")
@@ -701,7 +696,7 @@ if [ "$TYPE" = "vs" ]; then
     if [ -z ${VS_BIN_PATH+x} ]; then	            
 		VS_VER_DIR=$(ls "$VS_BASE_PATH/VC/Tools/${VS_COMPILER}/" | tail -1)
         if [ $VS_COMPILER == "MSVC" ]; then 
-            if [ $ARCH == "arm64" ] || [ $ARCH == "ARM" ] || [ $ARCH == "arm64ec" ]; then
+            if [ $ARCH == "arm64" ] || [ $ARCH == "arm" ] || [ $ARCH == "arm64ec" ]; then
                 export VS_BIN_PATH="$VS_BASE_PATH/VC/Tools/${VS_COMPILER}/$VS_VER_DIR/bin/$VS_HOSTPLATFORM/$BUILD_PLATFORM"
             else 
                 export VS_BIN_PATH="$VS_BASE_PATH/VC/Tools/${VS_COMPILER}/$VS_VER_DIR/bin/$VS_HOSTPLATFORM/$BUILD_PLATFORM"
@@ -734,22 +729,24 @@ if [ "$TYPE" = "vs" ]; then
         fi
     fi
     if [ $VS_VER == "17" ]; then
-        VS_YEAR=2022
-        VS_VER=17
-        VS_VER_GEN="$VS_VER $VS_YEAR"
+        export VS_YEAR=2022
+        export VS_VER=17
+        export VS_VER_GEN="$VS_VER $VS_YEAR"
         if [ $ARCH == "arm64ec" ] || [ $TARGET_WIN_11 == 1 ]; then
             export CMAKE_WIN_SDK="-DCMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION=${WIN11_INSTALLED_SDK_2022} -DCMAKE_SYSTEM_VERSION=${WIN11_INSTALLED_SDK_2022} "
+            export CMAKE_WIN_SDK_HEX=${WIN10_INSTALLED_SDK_2022_HEX}
         else 
             export CMAKE_WIN_SDK="-DCMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION=${WIN10_INSTALLED_SDK_2022} -DCMAKE_SYSTEM_VERSION=${WIN10_INSTALLED_SDK_2022} "
+            export CMAKE_WIN_SDK_HEX=${WIN11_INSTALLED_SDK_2022_HEX}
         fi
 
         if [ $VS_COMPILER == "LLVM" ]; then
             export CMAKE_WIN_SDK="${CMAKE_WIN_SDK} -DCMAKE_CXX_COMPILER=${VS_BIN_PATH}/clang++ -DCMAKE_C_COMPILER=${VS_BIN_PATH}/clang -T ClangCL -DLLVM_ENABLE_RUNTIMES=libcxx -DLIBCXX_ENABLE_SHARED=NO -DLIBCXX_ENABLE_STATIC=YES"
         fi
     else
-        VS_YEAR=2019
-        VS_VER=16
-        VS_VER_GEN="$VS_VER $VS_YEAR"
+        export VS_YEAR=2019
+        export VS_VER=16
+        export VS_VER_GEN="$VS_VER $VS_YEAR"
         export CMAKE_WIN_SDK="-DCMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION=${WIN10_INSTALLED_SDK_2019} -DCMAKE_SYSTEM_VERSION=${WIN10_INSTALLED_SDK_2019} "
     fi    
     echoVerbose "PLATFORM set to ${PLATFORM} Visual Studio ${VS_VER_GEN} - ${CROSS_TOOL} - ${VS_HOST}"
@@ -796,29 +793,40 @@ if [ "$TYPE" = "msys2" ]; then
             esac
         fi
     fi
-    export PLATFORM=$ARCH
+    export PLATFORM=${ARCH}
 fi
 
 if [ "$TYPE" = "emscripten" ]; then
-    export CPP_STANDARD=17
+    export CPP_STANDARD=23
+    FLAG_RELEASE=""
+    export PLATFORM_FLAG=""
     if [ $ARCH == 64 ] ; then
         export PLATFORM="WASM64"
         export PLATFORM_FLAG="-DMEMORY64 -matomics -mbulk-memory"
         echo "Emscripten: ARCH:${ARCH}"
     else
         export PLATFORM="WASM"
-        export PLATFORM_FLAG=""
-         echo "Emscripten: ARCH:${ARCH}"
+        echo "Emscripten: ARCH:${ARCH}"
     fi
     if [ -z "${PTHREADS_ENABLED+x}" ]; then
         export PTHREADS_ENABLED=0
     fi
+
+    if [ -z "${EXCEPTIONS_ENABLED+x}" ]; then
+        export EXCEPTIONS_ENABLED=0
+    else
+        if [ $EXCEPTIONS_ENABLED == 1 ] ; then
+            PLATFORM_FLAG+="-fwasm-exceptions"
+            # PLATFORM_FLAG+="-fexceptions"
+        fi
+    fi
+
     if [ "$PTHREADS_ENABLED" == "1" ] ; then
         PTHREADS_FLAG="-DUSE_PTHREADS=1 -pthread"
     else
         PTHREADS_FLAG=""
     fi
-    export FLAG_RELEASE="-DWASM=ON -DNDEBUG -Os ${PTHREADS_FLAG} -fPIC ${PLATFORM_FLAG} -fvisibility=hidden -Wno-implicit-function-declaration -frtti"
+    export FLAG_RELEASE+="-Os ${PTHREADS_FLAG} -fPIC ${PLATFORM_FLAG} -fvisibility=hidden -Wno-implicit-function-declaration -frtti -DWASM=ON -DNDEBUG "
 	EMSCRIPTEN_SCRIPT="$(realpath "$APOTHECARY_DIR/../scripts/emscripten/setup.sh")"
 	. "$EMSCRIPTEN_SCRIPT"
 fi
@@ -1261,7 +1269,7 @@ function doCommand() {
 					# does this formula support the current build type?
 					local bFormulaType=0 # bool
 					isFormulaType $TYPE bFormulaType
-					if [ $bFormulaType == 0 ] ; then
+					if [ $bFormulaType == 0 ] && [ $TYPE != "macos" ] ; then
 						echoInfo " Skipping \"$currentLib\": $cmd not needed for type \"$TYPE\""
 					else
 						# do command
@@ -1539,6 +1547,10 @@ function frameworkFormula() {
         
     if [ ! -e "$LIBS_DIR/$1" ] ; then
         echoVerbose " Nothing to create framework from to merge in lib dest dir: \"$1\""
+        exit 0;
+    elif [  $1 == "pkg-config" ] ; then
+        echoVerbose " No need to create framework for: \"$1\""
+        exit 0;
     else
         rm -rf $LIBS_DIR_REAL/$1/lib/$TYPE/*.xcframework
 
@@ -1613,16 +1625,16 @@ function frameworkFormula() {
         for CURRENT_TYPE in "${PLATFORM_TYPES[@]}"; do
             if [ -d "$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE" ]; then
                 echo "Processing platform type: $CURRENT_TYPE"
-                for ARCH in "${!ARCH_PAIRS[@]}"; do
-                    PAIR="${ARCH_PAIRS[$ARCH]}"
-                    DIR_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/$ARCH/"
+                for X_ARCH in "${!ARCH_PAIRS[@]}"; do
+                    PAIR="${ARCH_PAIRS[$X_ARCH]}"
+                    DIR_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/$X_ARCH/"
                     if [ -d "$DIR_PATH" ]; then
                         echo "Processing ARCH: $ARCH"
-                        MERGED_DIR="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}_${PAIR}"
+                        MERGED_DIR="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${X_ARCH}_${PAIR}"
                         declare -a archive_paths=()
                         while IFS= read -r -d $'\0' file; do
                             archive_paths+=("$file")
-                        done < <(find "$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/$ARCH/" -name "*.a" -print0)
+                        done < <(find "$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/$X_ARCH/" -name "*.a" -print0)
                         for path in "${archive_paths[@]}"; do
                             echo "Archive path: $path"
                         done
@@ -1651,14 +1663,14 @@ function frameworkFormula() {
                         for ARCH_FILE in "${archive_paths[@]}"; do
                             echo "ARCH_FILE: $ARCH_FILE $1 - $CURRENT_TYPE"
                             # Determine paired architecture directory
-                            PAIR_FILE="${ARCH_FILE/$ARCH/$PAIR}"
+                            PAIR_FILE="${ARCH_FILE/$X_ARCH/$PAIR}"
                             path_found_in_array=false
-                            if [[ -f "$PAIR_FILE" && "$ARCH" != "$PAIR" ]]; then
+                            if [[ -f "$PAIR_FILE" && "$X_ARCH" != "$PAIR" ]]; then
                                 mkdir -p "$MERGED_DIR"
-                                echo "MERGED_DIR: $ARCH - Pair: $PAIR"
+                                echo "MERGED_DIR: $X_ARCH - Pair: $PAIR"
                                 # Determine the output filename in the merged directory
-                                PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}_${PAIR}/
-                                MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}_${PAIR}/$(basename "$ARCH_FILE" .a).a"
+                                PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${X_ARCH}_${PAIR}/
+                                MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${X_ARCH}_${PAIR}/$(basename "$ARCH_FILE" .a).a"
                                 # Use lipo to merge the architectures into a single file - prevents linking errors
                                 xcrun lipo -create "$ARCH_FILE" "$PAIR_FILE" -output "$MERGED_PATH"
                                 echo "Merged $ARCH_FILE and $PAIR_FILE into $MERGED_PATH"
@@ -1676,8 +1688,8 @@ function frameworkFormula() {
                                     echo "path_found_in_array == true"
                                 fi
                             else
-                                PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/${ARCH}/
-                                MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/${ARCH}/$(basename "$ARCH_FILE" .a).a"
+                                PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/${X_ARCH}/
+                                MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/${X_ARCH}/$(basename "$ARCH_FILE" .a).a"
                                 xcrun codesign --sign - $MERGED_PATH || true
                                 if [[ "$num_archive_paths" -gt 1 ]]; then
                                     for dir in "${merged_dirs[@]}"; do
@@ -1740,6 +1752,13 @@ function frameworkFormula() {
 
         echoSuccess " flags: [\"$1\" \"$xcframework_flags\"]"
         HERE_DIR=$(cd $(dirname "./"); pwd -P)
+
+        if [[ $TYPE == "osx" ]]; then
+            TYPE_OUT="macos"
+        else
+            TYPE_OUT=${TYPE}
+        fi
+
         cd "${LIBS_DIR_REAL}/${1}/lib/${TYPE}/"
         xcodebuild -create-xcframework $xcframework_flags -output $1.xcframework
         echoSuccess " xcframework for $TYPE built successfully."
@@ -1796,7 +1815,7 @@ function frameworkFormula() {
 
 function xframeworkFormula() {
 
-    TYPE=macos
+    export X_TYPE=macos
     export LIBS_DIR_REAL=$(realpath $LIBS_DIR)
 
     XLIBSLOCAL="$APOTHECARY_DIR/../xout"
@@ -1805,21 +1824,25 @@ function xframeworkFormula() {
     fi
     export XLIBS_DIR_REAL=$(realpath $XLIBSLOCAL)
 
-    PLATFORM_TYPES=("ios" "osx" "catos" "xros" "tvos" "watchos")
+    export PLATFORM_TYPES=("ios" "osx" "catos" "xros" "tvos" "watchos")
     VERSION=""
     DEFINES=""
-    mkdir -p ${LIBS_DIR_REAL}/${1}/lib/${TYPE}
+    mkdir -p ${LIBS_DIR_REAL}/${1}/lib/${X_TYPE}
     
     if [ ! -e "$LIBS_DIR/$1" ] ; then
         echoVerbose " Nothing to create framework from to merge in lib dest dir: \"$1\""
+        exit 0;
+    elif [  $1 == "pkg-config" ] ; then
+        echoVerbose " No need to create framework for: \"$1\""
+        exit 0;
     else
         # rm -rf $LIBS_DIR_REAL/$1/lib/$TYPE/*.xcframework
 
-        echoSuccess " Framework lib dest dir: \"$1\" \"$LIBS_DIR_REAL/$1/lib/$TYPE/\" "
+        echoSuccess " Framework lib dest dir: \"$1\" \"$LIBS_DIR_REAL/$1/lib/$X_TYPE/\" "
         xcframework_flags=""
 
         XDIR="${XLIBS_DIR_REAL}/"
-        X_LIBS="$XDIR/${1}/lib/${TYPE}/"
+        X_LIBS="$XDIR/${1}/lib/${X_TYPE}/"
         X_INCLUDE=$XDIR/${1}/include
         X_LICENSE=$XDIR/${1}/license
         
@@ -1828,9 +1851,9 @@ function xframeworkFormula() {
 
         if [[ $1 == "fmod" ]] || [[ $1 == "fmodex" ]] || [[ $1 == "glm" ]] || [[ $1 == "json" ]] || [[ $1 == "utf8" ]]; then
             if ! command -v rsync &> /dev/null; then      
-                if [[  -e "${LIBS_DIR_REAL}/${1}/lib/${TYPE}/" ]]; then
+                if [[  -e "${LIBS_DIR_REAL}/${1}/lib/${X_TYPE}/" ]]; then
                     mkdir -p "${X_LIBS}"
-                    cp -av "${LIBS_DIR_REAL}/${1}/lib/${TYPE}/"* ${X_LIBS}
+                    cp -av "${LIBS_DIR_REAL}/${1}/lib/${X_TYPE}/"* ${X_LIBS}
                 fi
                 if [[  -e "${LIBS_DIR_REAL}/${1}/include/" ]]; then
                     cp -av "${LIBS_DIR_REAL}/${1}/include/"* ${X_INCLUDE}
@@ -1839,9 +1862,9 @@ function xframeworkFormula() {
                     cp -av "${LIBS_DIR_REAL}/${1}/license/"* ${X_LICENSE}
                 fi
             else
-                if [[  -e "${LIBS_DIR_REAL}/${1}/lib/${TYPE}" ]]; then
+                if [[  -e "${LIBS_DIR_REAL}/${1}/lib/${X_TYPE}" ]]; then
                     mkdir -p "${X_LIBS}"
-                    rsync -av --delete "${LIBS_DIR_REAL}/${1}/lib/${TYPE}/" ${X_LIBS}
+                    rsync -av --delete "${LIBS_DIR_REAL}/${1}/lib/${X_TYPE}/" ${X_LIBS}
                 fi
                 if [[  -e "${LIBS_DIR_REAL}/${1}/include/" ]]; then
                     rsync -av --delete "${LIBS_DIR_REAL}/${1}/include/" ${X_INCLUDE}
@@ -1857,7 +1880,7 @@ function xframeworkFormula() {
             echoSuccess "Building macOS xcframework"
         fi
 
-        XCFRAMEWORK_PATH="${LIBS_DIR_REAL}/${1}/lib/${TYPE}/$1.xcframework"
+        XCFRAMEWORK_PATH="${LIBS_DIR_REAL}/${1}/lib/${X_TYPE}/$1.xcframework"
 
         rm -rfv "${XCFRAMEWORK_PATH}"
 
@@ -1887,16 +1910,16 @@ function xframeworkFormula() {
         for CURRENT_TYPE in "${PLATFORM_TYPES[@]}"; do
             if [ -d "$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE" ]; then
                 echo "Processing platform type: $CURRENT_TYPE"
-                for ARCH in "${!ARCH_PAIRS[@]}"; do
-                    PAIR="${ARCH_PAIRS[$ARCH]}"
-                    DIR_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/$ARCH/"
+                for X_ARCH in "${!ARCH_PAIRS[@]}"; do
+                    PAIR="${ARCH_PAIRS[$X_ARCH]}"
+                    DIR_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/$X_ARCH/"
                     if [ -d "$DIR_PATH" ]; then
-                        echo "Processing ARCH: $ARCH"
-                        MERGED_DIR="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}_${PAIR}"
+                        echo "Processing ARCH: $X_ARCH"
+                        MERGED_DIR="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${X_ARCH}_${PAIR}"
                         declare -a archive_paths=()
                         while IFS= read -r -d $'\0' file; do
                             archive_paths+=("$file")
-                        done < <(find "$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/$ARCH/" -name "*.a" -print0)
+                        done < <(find "$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/$X_ARCH/" -name "*.a" -print0)
                         for path in "${archive_paths[@]}"; do
                             echo "Archive path: $path"
                         done
@@ -1925,15 +1948,15 @@ function xframeworkFormula() {
                         for ARCH_FILE in "${archive_paths[@]}"; do
                             echo "ARCH_FILE: $ARCH_FILE $1 - $CURRENT_TYPE"
                             # Determine paired architecture directory
-                            PAIR_FILE="${ARCH_FILE/$ARCH/$PAIR}"
+                            PAIR_FILE="${ARCH_FILE/$X_ARCH/$PAIR}"
                             path_found_in_array=false
-                            if [[ -f "$PAIR_FILE" && "$ARCH" != "$PAIR" ]]; then
+                            if [[ -f "$PAIR_FILE" && "$X_ARCH" != "$PAIR" ]]; then
                                 mkdir -p "$MERGED_DIR"
-                                echo "MERGED_DIR: $ARCH - Pair: $PAIR"
+                                echo "MERGED_DIR: $X_ARCH - Pair: $PAIR"
                                 # Determine the output filename in the merged directory
-                                PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}_${PAIR}/
+                                PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${X_ARCH}_${PAIR}/
                                 mkdir -p "$PATH_MERGE"
-                                MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${ARCH}_${PAIR}/$(basename "$ARCH_FILE" .a).a"
+                                MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/MERGE_${X_ARCH}_${PAIR}/$(basename "$ARCH_FILE" .a).a"
                                 # Use lipo to merge the architectures into a single file - prevents linking errors
                                 xcrun lipo -create "$ARCH_FILE" "$PAIR_FILE" -output "$MERGED_PATH"
                                 echo "Merged $ARCH_FILE and $PAIR_FILE into [$MERGED_PATH]"
@@ -1952,8 +1975,8 @@ function xframeworkFormula() {
                                     echo "path_found_in_array == true - not adding for $PAIR_FILE"
                                 fi
                             else
-                                PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/${ARCH}/
-                                MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/${ARCH}/$(basename "$ARCH_FILE" .a).a"
+                                PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/${X_ARCH}/
+                                MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/${X_ARCH}/$(basename "$ARCH_FILE" .a).a"
                                 xcrun codesign --sign - $MERGED_PATH || true
                                 if [[ "$num_archive_paths" -gt 1 ]]; then
                                     for dir in "${merged_dirs[@]}"; do
@@ -2162,7 +2185,7 @@ function vs-build() {
 			DEFAULT_BUILD="Release|Win32"
 		elif [ $ARCH == 64 ] ; then
 			DEFAULT_BUILD="Release|x64"
-		elif [ $ARCH == "ARM" ] ; then
+		elif [ $ARCH == "arm" ] ; then
 			DEFAULT_BUILD="Release|ARM"
 		elif [ $ARCH == "arm64" ] ; then
 			DEFAULT_BUILD="Release|ARM64"
