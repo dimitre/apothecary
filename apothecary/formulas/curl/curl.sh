@@ -6,7 +6,7 @@
 #
 # uses a CMake build system
 
-FORMULA_TYPES=( "vs" "osx" "ios" "xros" )
+FORMULA_TYPES=( "vs" "osx" "ios" "xros" "tvos" "catos")
 
 # Android to implementation 'com.android.ndk.thirdparty:curl:7.79.1-beta-1'
 
@@ -48,6 +48,10 @@ function prepare() {
     apothecaryDependencies download
 
     # cp -f $FORMULA_DIR/CMakeLists.txt .
+
+    apothecaryDepend prepare brotli
+    apothecaryDepend build brotli
+    apothecaryDepend copy brotli
   
     apothecaryDepend prepare zlib
     apothecaryDepend build zlib
@@ -67,11 +71,12 @@ function prepare() {
 function build() {
 
     LIBS_ROOT=$(realpath $LIBS_DIR)
-    export OF_LIBS_OPENSSL_ABS_PATH=$(realpath ${LIBS_DIR}/)
-    local OF_LIBS_OPENSSL="$LIBS_DIR/openssl/"
-    local OF_LIBS_OPENSSL_ABS_PATH=`realpath $OF_LIBS_OPENSSL`
-
-    export OPENSSL_PATH=$OF_LIBS_OPENSSL_ABS_PATH
+    if [[ ! "$TYPE" =~ ^(tvos|catos|watchos)$ ]]; then
+        export OF_LIBS_OPENSSL_ABS_PATH=$(realpath ${LIBS_DIR}/)
+        local OF_LIBS_OPENSSL="$LIBS_DIR/openssl/"
+        local OF_LIBS_OPENSSL_ABS_PATH=`realpath $OF_LIBS_OPENSSL`
+         export OPENSSL_PATH=$OF_LIBS_OPENSSL_ABS_PATH
+    fi
 	
 	if [ "$TYPE" == "vs" ] ; then
 		export OPENSSL_LIBRARIES=$OF_LIBS_OPENSSL_ABS_PATH/lib/$TYPE/$PLATFORM
@@ -96,8 +101,15 @@ function build() {
         ZLIB_INCLUDE_DIR="$LIBS_ROOT/zlib/include"
         ZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/$PLATFORM/zlib.lib"
 
+        LIBBROTLI_ROOT="$LIBS_ROOT/brotli/"
+        LIBBROTLI_INCLUDE_DIR="$LIBS_ROOT/brotli/include"
+        LIBBROTLI_LIBRARY="$LIBS_ROOT/brotli/lib/$TYPE/$PLATFORM"
+        LIBBROTLI_COMMON_LIB="$LIBBROTLI_LIBRARY/brotlicommon.lib"
+        LIBBROTLI_ENC_LIB="$LIBBROTLI_LIBRARY/brotlienc.lib"
+        LIBBROTLI_DEC_LIB="$LIBBROTLI_LIBRARY/brotlidec.lib"
 
-        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig;${PKG_CONFIG_PATH};${OF_LIBS_OPENSSL}/lib/$TYPE/$PLATFORM;${ZLIB_ROOT}/lib/$TYPE/$PLATFORM"
+
+        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig;${PKG_CONFIG_PATH};${OF_LIBS_OPENSSL}/lib/$TYPE/$PLATFORM;${ZLIB_ROOT}/lib/$TYPE/$PLATFORM;${LIBBROTLI_ROOT}/lib/$TYPE/$PLATFORM"
 
         DEFS="-DLIBRARY_SUFFIX=${ARCH} \
             -DCMAKE_BUILD_TYPE=Release \
@@ -137,6 +149,12 @@ function build() {
             -DZLIB_INCLUDE_DIRS=${ZLIB_INCLUDE_DIR} \
             -DZLIB_LIBRARY=${ZLIB_LIBRARY} \
             -DZLIB_LIBRARIES=${ZLIB_LIBRARY} \
+            -DCURL_BROTLI=ON \
+            -DBROTLIDEC_LIBRARY=${LIBBROTLI_DEC_LIB} \
+            -DBROTLICOMMON_LIBRARY=${LIBBROTLI_COMMON_LIB} \
+            -DBROTLI_INCLUDE_DIR=${LIBBROTLI_INCLUDE_DIR} \
+            -DBROTLI_LIBRARIES="${LIBBROTLI_COMMON_LIB} ;${LIBBROTLI_DEC_LIB};${LIBBROTLI_ENC_LIB}" \
+            -DBROTLI_INCLUDE_DIRS="${LIBBROTLI_INCLUDE_DIR}" \
             -DUSE_RESOLVE_ON_IPS=OFF \
             -DENABLE_ARES=OFF \
             -DCMAKE_VERBOSE_MAKEFILE=${VERBOSE_MAKEFILE} \
@@ -229,12 +247,30 @@ function build() {
 	elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
 
 
-        export OPENSSL_LIBRARIES=$OF_LIBS_OPENSSL_ABS_PATH/lib/$TYPE/$PLATFORM
+        if [[ ! "$TYPE" =~ ^(tvos|catos|watchos)$ ]]; then
+            export OPENSSL_LIBRARIES=$OF_LIBS_OPENSSL_ABS_PATH/lib/$TYPE/$PLATFORM
+            OPENSSL_ROOT="$LIBS_ROOT/openssl/"
+            OPENSSL_INCLUDE_DIR="$LIBS_ROOT/openssl/include"
+            OPENSSL_LIBRARY="$LIBS_ROOT/openssl/lib/$TYPE/$PLATFORM/libssl.a" 
+            OPENSSL_LIBRARY_CRYPT="$LIBS_ROOT/openssl/lib/$TYPE/$PLATFORM/libcrypto.a" 
+            USE_SECURE_TRANSPORT=OFF
+            CURL_ENABLE_SSL=ON
+            SSL_DEFS="-DOPENSSL_ROOT_DIR=${OF_LIBS_OPENSSL_ABS_PATH} \
+                -DOPENSSL_INCLUDE_DIR=${OF_LIBS_OPENSSL_ABS_PATH}/include \
+                -DOPENSSL_LIBRARIES=${OF_LIBS_OPENSSL_ABS_PATH}/lib/${TYPE}/${PLATFORM}/libssl.a:${OF_LIBS_OPENSSL_ABS_PATH}/lib/${TYPE}/${PLATFORM}/libcrypto.a"
+        else
+            # disabled for tvOS SSL
+            OPENSSL_ROOT="$LIBS_ROOT"
+            OPENSSL_INCLUDE_DIR=""
+            OPENSSL_LIBRARY="" 
+            OPENSSL_LIBRARY_CRYPT=""
+            USE_SECURE_TRANSPORT=ON
+            OPENSSL_PATH=""
+            OF_LIBS_OPENSSL_ABS_PATH=""
+            CURL_ENABLE_SSL=OFF
+            SSL_DEFS=""
 
-        OPENSSL_ROOT="$LIBS_ROOT/openssl/"
-        OPENSSL_INCLUDE_DIR="$LIBS_ROOT/openssl/include"
-        OPENSSL_LIBRARY="$LIBS_ROOT/openssl/lib/$TYPE/$PLATFORM/libssl.a" 
-        OPENSSL_LIBRARY_CRYPT="$LIBS_ROOT/openssl/lib/$TYPE/$PLATFORM/libcrypto.a" 
+        fi
 
         ZLIB_ROOT="$LIBS_ROOT/zlib/"
         ZLIB_INCLUDE_DIR="$LIBS_ROOT/zlib/include"
@@ -248,17 +284,6 @@ function build() {
         LIBBROTLI_DEC_LIB="$LIBS_ROOT/brotli/lib/$TYPE/$PLATFORM/libbrotlidec.a"
 
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}:${OPENSSL_ROOT}/lib/$TYPE/$PLATFORM:${ZLIB_ROOT}/lib/$TYPE/$PLATFORM:${LIBBROTLI_ROOT}/lib/$TYPE/$PLATFORM"
-        
-        #PATH="${PATH};${OPENSSL_PATH}/lib/${TYPE}/${PLATFORM};${ZLIB_LIBRARY}/lib/${TYPE}/${PLATFORM}"
-
-        rm -f ${OPENSSL_PATH}/lib/libssl.a || true
-        rm -f ${OPENSSL_PATH}/lib/libcrypto.a || true
-        rm -f ${ZLIB_ROOT}/lib/zlib.a || true
-         
-        cp ${OPENSSL_PATH}/lib/${TYPE}/${PLATFORM}/libssl.a ${OPENSSL_PATH}/lib/libssl.a # this works! 
-        cp ${OPENSSL_PATH}/lib/${TYPE}/${PLATFORM}/libcrypto.a ${OPENSSL_PATH}/lib/libcrypto.a
-        cp ${ZLIB_LIBRARY} ${ZLIB_ROOT}/lib/zlib.a
-
 
         echo "building curl $TYPE | $PLATFORM"
         echo "--------------------"
@@ -289,9 +314,7 @@ function build() {
             -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE \
             -DCURL_DISABLE_LDAP=ON \
             -DENABLE_VISIBILITY=OFF \
-            -DOPENSSL_ROOT_DIR="$OF_LIBS_OPENSSL_ABS_PATH" \
-            -DOPENSSL_INCLUDE_DIR="$OF_LIBS_OPENSSL_ABS_PATH/include" \
-            -DOPENSSL_LIBRARIES="$OF_LIBS_OPENSSL_ABS_PATH/lib/$TYPE/$PLATFORM/libssl.a:$OF_LIBS_OPENSSL_ABS_PATH/lib/$TYPE/$PLATFORM/libcrypto.a" \
+            ${SSL_DEFS} \
             -DCMAKE_PREFIX_PATH="${LIBS_ROOT}" \
             -DZLIB_ROOT=${ZLIB_ROOT} \
             -DZLIB_INCLUDE_DIR=${ZLIB_INCLUDE_DIR} \
@@ -302,10 +325,10 @@ function build() {
             -DCMAKE_VERBOSE_MAKEFILE=${VERBOSE_MAKEFILE} \
             -DENABLE_UNIX_SOCKETS=OFF \
             -DHAVE_LIBSOCKET=OFF \
-            -DCURL_ENABLE_SSL=ON \
+            -DCURL_ENABLE_SSL=${CURL_ENABLE_SSL} \
             -DCMAKE_MACOSX_BUNDLE=OFF \
             -DCMAKE_VERBOSE_MAKEFILE=${VERBOSE_MAKEFILE} \
-            -DUSE_SECURE_TRANSPORT=OFF \
+            -DUSE_SECURE_TRANSPORT=${USE_SECURE_TRANSPORT} \
             -DUSE_NGHTTP2=OFF \
             -DCURL_USE_SECTRANSP=OFF \
             -DCURL_DISABLE_POP3=ON \
@@ -314,19 +337,17 @@ function build() {
             -DENABLE_WEBSOCKETS=ON \
             -DENABLE_UNIX_SOCKETS=ON \
             -DCURL_BROTLI=ON \
+            -DBROTLI_INCLUDE_DIRS=${LIBBROTLI_INCLUDE_DIR} \
             -DBROTLIDEC_LIBRARY=${LIBBROTLI_DEC_LIB} \
             -DBROTLICOMMON_LIBRARY=${LIBBROTLI_LIBRARY} \
             -DBROTLI_INCLUDE_DIR=${LIBBROTLI_INCLUDE_DIR} \
+            -DBROTLI_LIBRARIES="${LIBBROTLI_LIBRARY} ;${LIBBROTLI_DEC_LIB};${LIBBROTLI_ENC_LIB}" \
             -DUSE_LIBIDN2=OFF \
             -DENABLE_VERBOSE=ON \
             -DENABLE_THREADED_RESOLVER=ON \
             -DENABLE_IPV6=ON
         cmake --build . --config Release --target install
         cd ..
-
-        rm ${OPENSSL_PATH}/lib/libssl.a
-        rm ${OPENSSL_PATH}/lib/libcrypto.a
-        rm ${ZLIB_ROOT}/lib/zlib.a
 
     else
         echo "building other for $TYPE"
@@ -358,11 +379,15 @@ function copy() {
 	if [ "$TYPE" == "vs" ] ; then
         mkdir -p $1/lib/$TYPE/$PLATFORM/
         cp -Rv "build_${TYPE}_${ARCH}/Release/include/"* $1/include 
+        mkdir -p $1/bin
+        cp -Rv "build_${TYPE}_${ARCH}/Release/bin/"* $1/bin
         cp -v "build_${TYPE}_${ARCH}/Release/lib/libcurl.lib" $1/lib/$TYPE/$PLATFORM/libcurl.lib
         secure $1/lib/$TYPE/$PLATFORM/libcurl.lib curl.pkl
 	elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
         mkdir -p $1/lib/$TYPE/$PLATFORM/
 		cp -Rv "build_${TYPE}_${PLATFORM}/Release/include/"* $1/include
+        mkdir -p $1/bin
+        cp -Rv "build_${TYPE}_${PLATFORM}/Release/bin/"* $1/bin
         cp -v "build_${TYPE}_${PLATFORM}/Release/lib/libcurl.a" $1/lib/$TYPE/$PLATFORM/curl.a
         secure $1/lib/$TYPE/$PLATFORM/curl.a curl.pkl
 	elif [ "$TYPE" == "android" ] ; then
