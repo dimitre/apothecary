@@ -1685,7 +1685,7 @@ function frameworkFormula() {
                                 # Use lipo to merge the architectures into a single file - prevents linking errors
                                 xcrun lipo -create "$ARCH_FILE" "$PAIR_FILE" -output "$MERGED_PATH"
                                 echo "Merged $ARCH_FILE and $PAIR_FILE into $MERGED_PATH"
-                                xcrun codesign --sign - $MERGED_PATH || true
+                                #xcrun codesign --sign - $MERGED_PATH || true
                                 for dir in "${merged_dirs[@]}"; do
                                     if [[ "$dir" == "$PATH_MERGE" ]]; then
                                         path_found_in_array=true
@@ -1701,7 +1701,7 @@ function frameworkFormula() {
                             else
                                 PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/${X_ARCH}/
                                 MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/${X_ARCH}/$(basename "$ARCH_FILE" .a).a"
-                                xcrun codesign --sign - $MERGED_PATH || true
+                                #xcrun codesign --sign - $MERGED_PATH || true
                                 if [[ "$num_archive_paths" -gt 1 ]]; then
                                     for dir in "${merged_dirs[@]}"; do
                                         if [[ "$dir" == "$PATH_MERGE" ]]; then
@@ -1744,7 +1744,7 @@ function frameworkFormula() {
                     rm -f "$a_file"
                 done
                 lipo -info "${dir}/${1}.a"
-                xcrun codesign --sign - "${dir}/${1}.a" || true
+                #xcrun codesign --sign - "${dir}/${1}.a" || true
                 if [[ ! "$xcframework_flags" =~ "${dir}/${1}.a" ]]; then
                     xcframework_flags+=" -library ${dir}/${1}.a"
                     xcframework_flags+=" -headers $LIBS_DIR_REAL/$1/include"
@@ -1782,7 +1782,7 @@ function frameworkFormula() {
         find "$XCFRAMEWORK_PATH" -type f -name "*.a" | while read -r lib_a; do
             echo "Securing $lib_a..."
             lipo -info "$lib_a"
-            xcrun codesign --sign - "$lib_a" || true
+            #xcrun codesign --sign - "$lib_a" || true
             . "$SECURE_SCRIPT"
             secure "$lib_a" "$LIB_NAME" "$VERSION"
         done
@@ -1974,7 +1974,7 @@ function xframeworkFormula() {
                                 # Use lipo to merge the architectures into a single file - prevents linking errors
                                 xcrun lipo -create "$ARCH_FILE" "$PAIR_FILE" -output "$MERGED_PATH"
                                 echo "Merged $ARCH_FILE and $PAIR_FILE into [$MERGED_PATH]"
-                                xcrun codesign --sign - $MERGED_PATH || true
+                                #xcrun codesign --sign - $MERGED_PATH || true
                                 for dir in "${merged_dirs[@]}"; do
                                     if [[ "$dir" == "$PATH_MERGE" ]]; then
                                         path_found_in_array=true
@@ -1991,7 +1991,7 @@ function xframeworkFormula() {
                             else
                                 PATH_MERGE=$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/${X_ARCH}/
                                 MERGED_PATH="$LIBS_DIR_REAL/$1/lib/$CURRENT_TYPE/${X_ARCH}/$(basename "$ARCH_FILE" .a).a"
-                                xcrun codesign --sign - $MERGED_PATH || true
+                                #xcrun codesign --sign - $MERGED_PATH || true
                                 if [[ "$num_archive_paths" -gt 1 ]]; then
                                     for dir in "${merged_dirs[@]}"; do
                                         if [[ "$dir" == "$PATH_MERGE" ]]; then
@@ -2035,7 +2035,7 @@ function xframeworkFormula() {
                     rm -f "$a_file"
                 done
                 lipo -info "${dir}/${1}.a"
-                xcrun codesign --sign - "${dir}/${1}.a" || true
+                #xcrun codesign --sign - "${dir}/${1}.a" || true
                 if [[ ! "$xcframework_flags" =~ "${dir}/${1}.a" ]]; then
                     xcframework_flags+=" -library ${dir}/${1}.a"
                     xcframework_flags+=" -headers $LIBS_DIR_REAL/$1/include"
@@ -2063,7 +2063,7 @@ function xframeworkFormula() {
         find "$XCFRAMEWORK_PATH" -type f -name "*.a" | while read -r lib_a; do
             echo "Securing $lib_a..."
             lipo -info "$lib_a"
-            xcrun codesign --sign - "$lib_a" || true
+            #xcrun codesign --sign - "$lib_a" || true
             . "$SECURE_SCRIPT"
             secure "$lib_a" "$LIB_NAME" "$VERSION"
         done
