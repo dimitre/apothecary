@@ -4,6 +4,8 @@ on:
     branches:
       - master
       - bleeding
+    tags:
+      - '*'
     paths-ignore:
       - '**/README.md'
   pull_request:
@@ -107,20 +109,21 @@ jobs:
             const release = process.env.RELEASE;
             const platforms = ["ios", "macos", "tvos"];
             const platformTargets = { ios: "ios", macos: "osx", tvos: "tvos" };
-            const artifactNamesToDownload = [];
+            const artifactNamesToDownload = new Set();
 
             const max = 9; // The maximum suffix number for artifacts
 
             // Generate artifact names dynamically based on platforms, target mappings, and max count
             for (const platform of platforms) {
               for (let i = 1; i <= max; i++) {
-                artifactNamesToDownload.push(`libs-${release}-${platformTargets[platform]}-${i}`);
+                artifactNamesToDownload.add(`libs-${release}-${platformTargets[platform]}-${i}`);
               }
             }
             let count = 0;
+            const downloadedArtifacts = new Set(); 
             
             for (const artifact of artifacts.data.artifacts) {
-              if (artifactNamesToDownload.includes(artifact.name) && !artifact.expired) {
+              if (artifactNamesToDownload.includes(artifact.name) && !artifact.expired && !downloadedArtifacts.has(artifact.name)) {
                 // Download the artifact
                 const download = await github.rest.actions.downloadArtifact({
                   owner: context.repo.owner,
@@ -133,6 +136,7 @@ jobs:
                 fs.writeFileSync(artifactPath, Buffer.from(download.data));
                 console.log(`Downloaded ${artifact.name} to ${artifactPath}`);
                 count++;
+                downloadedArtifacts.add(artifact.name);
                 if (count >= max) {
                   break;
                 }
