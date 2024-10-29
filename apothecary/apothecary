@@ -553,7 +553,7 @@ if [ "$TYPE" = "vs" ]; then
         if [ $ARCH == "arm64" ] || [ $ARCH == "arm64ec" ]; then
             export VS_VER=17
         else
-            export VS_VER=17
+            export VS_VER=${VS_VER}
         fi 
         echoVerbose "VS_VER was not set - setting to ${VS_VER}"
     fi
