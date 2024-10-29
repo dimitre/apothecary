@@ -53,7 +53,7 @@ jobs:
           const artifacts = await github.rest.actions.listArtifactsForRepo({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            per_page: 100 // Get up to 100 artifacts
+            per_page: 1000 // Get up to 1000 artifacts
           });
 
           console.log(artifacts);
@@ -62,9 +62,10 @@ jobs:
             .filter(artifact => !artifact.expired)
             .reduce((acc, artifact) => {
               const nameParts = artifact.name.split('-');
-              const platform = nameParts[1]; // e.g., ios, macos, catos, xros, tvos
-              const arch = nameParts[2];     // e.g., arm64, x86_64, etc.
-              const bundle = nameParts[3];   // e.g., 1, 2, 3
+              const release = nameParts[1];
+              const platform = nameParts[2]; // e.g., ios, macos, catos, xros, tvos
+              const arch = nameParts[3];     // e.g., arm64, x86_64, etc.
+              const bundle = nameParts[4];   // e.g., 1, 2, 3
 
               const type = `${platform}-${arch}-${bundle}`;
               if (!acc[type] || acc[type].created_at < artifact.created_at) {
@@ -74,10 +75,12 @@ jobs:
             }, {});
 
           for (const artifact of artifacts.data.artifacts) {
+            // where name is: openFrameworksLibs_${{ env.RELEASE }}_${{ env.TARGET }}_${{ env.ARCH }}_${{ matrix.bundle }}.zip
             const nameParts = artifact.name.split('-');
-            const platform = nameParts[1];
-            const arch = nameParts[2];
-            const bundle = nameParts[3];
+            const release = nameParts[1];
+            const platform = nameParts[2];
+            const arch = nameParts[3];
+            const bundle = nameParts[4];
 
             const type = `${platform}-${arch}-${bundle}`;
             if (!artifact.expired && keepLatestArtifacts[type].id !== artifact.id) {

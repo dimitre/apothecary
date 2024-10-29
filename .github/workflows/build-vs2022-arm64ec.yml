@@ -96,7 +96,8 @@ jobs:
           const target = process.env.TARGET;
           const arch = process.env.ARCH;
           const bundle = process.env.MATRIX_BUNDLE;
-          const artifactName = `libs-${target}-${arch}-${bundle}`;
+          const release = process.env.RELEASE;
+          const artifactName = `libs-${release}-${target}-${arch}-${bundle}`;
 
           let count = 0;
           const max = 1;
@@ -163,7 +164,7 @@ jobs:
       env:
         release: ${{ env.RELEASE }}
       with:
-        name: libs-${{ env.TARGET }}-${{ env.ARCH }}-${{ matrix.bundle }}
+        name: libs-${{ env.RELEASE }}-${{ env.TARGET }}-${{ env.ARCH }}-${{ matrix.bundle }}
         path: out/openFrameworksLibs_${{ env.RELEASE }}_${{ env.TARGET }}_${{ env.ARCH }}_${{ matrix.bundle }}.zip
         retention-days: 31
     - name: Update Release ARM64EC
