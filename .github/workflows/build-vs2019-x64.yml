@@ -1,4 +1,4 @@
-name: build-vs2022-64
+name: build-vs2019-64
 
 on:
   push:
@@ -92,7 +92,7 @@ jobs:
               per_page: 50
           });
 
-          const target = process.env.TARGET + "-2019;
+          const target = process.env.TARGET + "-2019";
           const arch = process.env.ARCH;
           const bundle = process.env.MATRIX_BUNDLE;
           const release = process.env.RELEASE;
