@@ -73,7 +73,7 @@ jobs:
               per_page: 50
             });
 
-            cconst target = process.env.TARGET;
+            const target = process.env.TARGET;
             const bundle = process.env.MATRIX_BUNDLE;
             const release = process.env.RELEASE;
             const artifactName1 = `libs-${release}-${target}-1`;

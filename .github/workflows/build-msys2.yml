@@ -91,6 +91,5 @@ jobs:
           tag_name: ${{ env.RELEASE }}
           draft: false
           prerelease: ${{ env.PRERELEASE }}
-          token: ${{ secrets.GITHUB_TOKEN }}
           files: out/openFrameworksLibs_${{ env.RELEASE }}_${{ env.TARGET }}_${{ matrix.flavor }}.zip
 
