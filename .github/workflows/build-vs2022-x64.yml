@@ -56,7 +56,10 @@ jobs:
       id: vars
       shell: bash
       run: |
-        if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          echo "RELEASE=${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "PRERELEASE=false" >> $GITHUB_ENV
+        elif [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
           echo "RELEASE=nightly" >> $GITHUB_ENV
           echo "PRERELEASE=false" >> $GITHUB_ENV
         elif [[ "${{ github.ref }}" == "refs/heads/bleeding" ]]; then

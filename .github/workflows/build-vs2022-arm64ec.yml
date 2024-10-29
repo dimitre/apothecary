@@ -57,7 +57,10 @@ jobs:
       id: vars
       shell: bash
       run: |
-        if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          echo "RELEASE=${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "PRERELEASE=false" >> $GITHUB_ENV
+        elif [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
           echo "RELEASE=nightly" >> $GITHUB_ENV
           echo "PRERELEASE=false" >> $GITHUB_ENV
         elif [[ "${{ github.ref }}" == "refs/heads/bleeding" ]]; then
@@ -150,12 +153,12 @@ jobs:
         BUNDLE: ${{ matrix.bundle }}
     - name: Package
       working-directory: ${{ env.GITHUB_WORKSPACE }}
-      if: (github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding'))
+      if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding')
       run: scripts/package.sh
       env:
         BUNDLE: ${{ matrix.bundle }}
     - name: Upload binaries as Artifact
-      if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding')
+      if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding')
       uses: actions/upload-artifact@v4
       env:
         release: ${{ env.RELEASE }}
@@ -164,7 +167,7 @@ jobs:
         path: out/openFrameworksLibs_${{ env.RELEASE }}_${{ env.TARGET }}_${{ env.ARCH }}_${{ matrix.bundle }}.zip
         retention-days: 31
     - name: Update Release ARM64EC
-      if: startsWith(github.ref, 'refs/tags/') && github.repository == 'openframeworks/apothecary' && github.event_name == 'push'
+      if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding')
       uses: softprops/action-gh-release@v2.0.8
       with:
         token: ${{ secrets.GITHUB_TOKEN }}

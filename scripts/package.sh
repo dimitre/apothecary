@@ -268,9 +268,17 @@ if  type "ccache" > /dev/null; then
     echo $(ccache -s)
 fi
 
-if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]] || [[ ! -z ${APPVEYOR+x} && -z ${APPVEYOR_PULL_REQUEST_NUMBER+x} ]] || [[ ("${GITHUB_REF##*/}" == "master" || "${GITHUB_REF##*/}" == "bleeding") && -z "${GITHUB_HEAD_REF}" ]]; then
-    # exit here on PR's
-    echo "On Master or Bleeding Branch and not a PR - zipping build";
+if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]] ||
+    [[ ! -z ${APPVEYOR+x} && -z ${APPVEYOR_PULL_REQUEST_NUMBER+x} ]] ||
+    [[ ("${GITHUB_REF##*/}" == "master" || "${GITHUB_REF##*/}" == "bleeding") && -z "${GITHUB_HEAD_REF}" ]] ||
+    [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+        
+        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "On a tag - proceeding with tag-specific build steps"
+            RELEASE="${GITHUB_REF##*/}"
+        else
+            echo "On Master or Bleeding branch - proceeding with branch-specific build steps"
+        fi
 else
     echo "This is a PR or not master/bleeding branch, exiting build before compressing";
     if [ -z "${RELEASE+x}" ]; then
