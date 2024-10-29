@@ -36,7 +36,10 @@ jobs:
         id: vars
         shell: bash
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "RELEASE=${{ github.ref_name }}" >> $GITHUB_ENV
+            echo "PRERELEASE=false" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
             echo "release=nightly" >> $GITHUB_ENV
             echo "prerelease=false" >> $GITHUB_ENV
           elif [[ "${{ github.ref }}" == "refs/heads/bleeding" ]]; then
@@ -68,9 +71,10 @@ jobs:
             });
 
             const target = process.env.TARGET;
+            const release = process.env.RELEASE;
             const arch = process.env.ARCH;
             const pthreads = process.env.PTHREADS_ENABLED;
-            const artifactName = `libs-${target}-${arch}-${pthreads}`;
+            const artifactName = `libs-${release}-${target}-${arch}-${pthreads}`;
 
             let count = 0;
             const max = 1;
@@ -154,7 +158,7 @@ jobs:
         if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding')
         uses: actions/upload-artifact@v4
         with:
-          name: libs-emscripten-${{ matrix.arch }}-${{ matrix.pthreads }}
+          name: libs-${{ env.RELEASE }}-emscripten-${{ matrix.arch }}-${{ matrix.pthreads }}
           path: out/${{ env.FILENAME }}
           retention-days: 31
 

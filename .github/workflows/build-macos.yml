@@ -161,7 +161,7 @@ jobs:
         if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding' || contains(github.ref, 'refs/tags/'))
         uses: actions/upload-artifact@v4
         with:
-          name: libs-macos-${{ env.TARGET }}-${{ matrix.bundle }}
+          name: libs-${{ env.RELEASE }}-${{ env.TARGET }}-${{ matrix.bundle }}
           path: out/openFrameworksLibs_${{ env.RELEASE }}_${{ env.TARGET }}_${{ matrix.bundle }}.tar.bz2
           retention-days: 31
       - name: Remove .tar.bz2 files
