@@ -1,4 +1,4 @@
-name: build-vs2022-arm64ec
+name: build-vs2022-64
 
 on:
   push:
@@ -7,23 +7,22 @@ on:
   pull_request:
     paths-ignore:
     - '**/*.md'
-  
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   TARGET: "vs"
-  ARCH: arm64ec
+  ARCH: 64
   NO_FORCE: 1
-  VS_VER: 17
+  VS_VER: 16
   GA_CI_SECRET: ${{ secrets.CI_SECRET }}
   USE_ARTIFACT: true
     
 jobs:
-
-  build-vs2022:
-    runs-on: windows-2022
+  build-vs2019:
+    runs-on: windows-2019
     strategy:
       matrix:
         bundle: [1,2]
@@ -93,7 +92,7 @@ jobs:
               per_page: 50
           });
 
-          const target = process.env.TARGET;
+          const target = process.env.TARGET + "-2019;
           const arch = process.env.ARCH;
           const bundle = process.env.MATRIX_BUNDLE;
           const release = process.env.RELEASE;
@@ -104,8 +103,7 @@ jobs:
 
           for (const artifact of artifacts.data.artifacts) {
             const isBranchMatch = artifact.workflow_run.head_branch === release;
-            const isTagMatch = artifact.workflow_run.event === 'release' && artifact.name.includes(`libs-${release}`); 
-            
+            const isTagMatch = artifact.workflow_run.event === 'release' && artifact.name.includes(`libs-${release}`);
             if (artifact.name === artifactName && !artifact.expired && (isBranchMatch || isTagMatch)) {
         
               // Download the artifact
@@ -151,14 +149,14 @@ jobs:
           fi
           rm -f xout/*.tar.bz2 
           rm -f out/*.tar.bz2
-    - name: BuildARM64EC
+    - name: Build64
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: scripts/build.sh
       env:
         BUNDLE: ${{ matrix.bundle }}
     - name: Package
-      working-directory: ${{ env.GITHUB_WORKSPACE }}
       if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding' || contains(github.ref, 'refs/tags/'))
+      working-directory: ${{ env.GITHUB_WORKSPACE }}
       run: scripts/package.sh
       env:
         BUNDLE: ${{ matrix.bundle }}
@@ -168,10 +166,10 @@ jobs:
       env:
         release: ${{ env.RELEASE }}
       with:
-        name: libs-${{ env.RELEASE }}-${{ env.TARGET }}-${{ env.ARCH }}-${{ matrix.bundle }}
-        path: out/openFrameworksLibs_${{ env.RELEASE }}_${{ env.TARGET }}_${{ env.ARCH }}_${{ matrix.bundle }}.zip
+        name: libs-${{ env.RELEASE }}-${{ env.TARGET }}-2019-${{ env.ARCH }}-${{ matrix.bundle }}
+        path: out/openFrameworksLibs_${{ env.RELEASE }}_${{ env.TARGET }}_2019_${{ env.ARCH }}_${{ matrix.bundle }}.zip
         retention-days: 31
-    - name: Update Release ARM64EC
+    - name: Update Release x64
       if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding')
       uses: softprops/action-gh-release@v2.0.8
       with:
@@ -179,6 +177,6 @@ jobs:
         tag_name: ${{ env.RELEASE }}
         draft: false
         prerelease: ${{ env.PRERELEASE }}
-        files: out/openFrameworksLibs_${{ env.RELEASE }}_${{ env.TARGET }}_${{ env.ARCH }}_${{ matrix.bundle }}.zip
+        files: out/openFrameworksLibs_${{ env.RELEASE }}_${{ env.TARGET }}_2019_${{ env.ARCH }}_${{ matrix.bundle }}.zip
 
 

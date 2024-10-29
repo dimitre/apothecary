@@ -315,12 +315,20 @@ else
 fi
 
 
+
+
 TARBALL=openFrameworksLibs_${CUR_BRANCH}_$TARGET_$OPT$ARCH$BUNDLE.tar.bz2
 if [ "$TARGET" == "msys2" ]; then
     TARBALL=openFrameworksLibs_${CUR_BRANCH}_${TARGET}_${MSYSTEM,,}.zip
     "C:\Program Files\7-Zip\7z.exe" a $TARBALL $LIBS
     echo "C:\Program Files\7-Zip\7z.exe a $TARBALL $LIBS"
 elif [ "$TARGET" == "vs" ]; then
+    if [ -z "${VS_VER+x}" ]; then
+        if [ "${VS_VER}" == "16" ]; then 
+            echo "VS2019 Version"
+            TARGET="${TARGET}_2019"
+        fi
+    fi
     TARBALL=openFrameworksLibs_${CUR_BRANCH}_${TARGET}_${ARCH}_${BUNDLE}.zip
     "C:\Program Files\7-Zip\7z.exe" a $TARBALL $LIBS
     echo "C:\Program Files\7-Zip\7z.exe a $TARBALL $LIBS"
