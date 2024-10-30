@@ -133,7 +133,7 @@ jobs:
           PTHREADS_ENABLED: ${{ matrix.pthreads }}
 
       - name: Package
-        if: (github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding'))
+        if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding' || contains(github.ref, 'refs/tags/'))
         working-directory: ${{ env.GITHUB_WORKSPACE }}
         run: |
           ARCH_SUFFIX=""
@@ -155,7 +155,7 @@ jobs:
           PTHREADS_ENABLED: ${{ matrix.pthreads }}
 
       - name: Upload Artifact
-        if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding')
+        if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding' || contains(github.ref, 'refs/tags/'))
         uses: actions/upload-artifact@v4
         with:
           name: libs-${{ env.RELEASE }}-emscripten-${{ matrix.arch }}-${{ matrix.pthreads }}

@@ -17,7 +17,7 @@ FORMULAS=(
     "FreeImage"
     "libxml2"
     "freetype"
-    #"fmod"
+    "fmod"
     "glew"
     "glfw"
     "glm"
@@ -152,7 +152,7 @@ elif [ "$TARGET" == "vs" ]; then
             # All formulas
             #"boost"
             "FreeImage"
-            #"fmod"
+            "fmod"
             "glew"
             "glfw"
             "glm"
