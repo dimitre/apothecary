@@ -162,12 +162,10 @@ jobs:
           path: out/${{ env.FILENAME }}
           retention-days: 31
 
-      - name: Update Release
-        if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding')
-        uses: johnwbyrd/update-release@v1.0.0
+      - name: Update Release emscripten
+        if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding')
+        uses: softprops/action-gh-release@v2.0.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ env.release }}
-          release: ${{ env.release }}
-          prerelease: ${{ env.prerelease }}
+          tag_name: ${{ env.RELEASE }}
           files: out/${{ env.FILENAME }}

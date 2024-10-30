@@ -160,6 +160,7 @@ jobs:
       run: scripts/package.sh
       env:
         BUNDLE: ${{ matrix.bundle }}
+        VS_VER: 16
     - name: Upload binaries as Artifact
       if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding' || contains(github.ref, 'refs/tags/'))
       uses: actions/upload-artifact@v4
@@ -176,7 +177,6 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag_name: ${{ env.RELEASE }}
         draft: false
-        prerelease: ${{ env.PRERELEASE }}
         files: out/openFrameworksLibs_${{ env.RELEASE }}_${{ env.TARGET }}_2019_${{ env.ARCH }}_${{ matrix.bundle }}.zip
 
 
