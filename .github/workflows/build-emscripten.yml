@@ -14,7 +14,7 @@ concurrency:
 
 env:
   TARGET: "emscripten"
-  EMSDK_VERSION: "3.1.64"
+  EMSDK_VERSION: "3.1.70"
   USE_ARTIFACT: true
 
 jobs:
@@ -22,8 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [32, 64]
-        pthreads: [0, 1]
+        ARCH: [32, 64]
+        PTHREADS: [0, 1]
     steps:
       - uses: actions/checkout@v4
       - name: Docker Step
@@ -40,11 +40,11 @@ jobs:
             echo "RELEASE=${{ github.ref_name }}" >> $GITHUB_ENV
             echo "PRERELEASE=false" >> $GITHUB_ENV
           elif [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
-            echo "release=nightly" >> $GITHUB_ENV
-            echo "prerelease=false" >> $GITHUB_ENV
+            echo "RELEASE=nightly" >> $GITHUB_ENV
+            echo "PRERELEASE=false" >> $GITHUB_ENV
           elif [[ "${{ github.ref }}" == "refs/heads/bleeding" ]]; then
-            echo "release=bleeding" >> $GITHUB_ENV
-            echo "prerelease=true" >> $GITHUB_ENV
+            echo "RELEASE=bleeding" >> $GITHUB_ENV
+            echo "PRERELEASE=true" >> $GITHUB_ENV
           fi
 
       - name: Download previous artifacts
