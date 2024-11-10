@@ -267,17 +267,18 @@ fi
 if  type "ccache" > /dev/null; then
     echo $(ccache -s)
 fi
+CUR_BRANCH="master";
+if [[ ("${GITHUB_REF##*/}" == "master" || "${GITHUB_REF##*/}" == "bleeding" || "${GITHUB_REF##*/}" == "latest") && -z "${GITHUB_HEAD_REF}" ]] 
+    || [[ "${GITHUB_REF}" == refs/tags/* ]]; then
 
-if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]] ||
-    [[ ! -z ${APPVEYOR+x} && -z ${APPVEYOR_PULL_REQUEST_NUMBER+x} ]] ||
-    [[ ("${GITHUB_REF##*/}" == "master" || "${GITHUB_REF##*/}" == "bleeding") && -z "${GITHUB_HEAD_REF}" ]] ||
-    [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-        
         if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             echo "On a tag - proceeding with tag-specific build steps"
             RELEASE="${GITHUB_REF##*/}"
+            CUR_BRANCH="$RELEASE"
         else
             echo "On Master or Bleeding branch - proceeding with branch-specific build steps"
+            CUR_BRANCH="latest"
+            RELEASE="latest"
         fi
 else
     echo "This is a PR or not master/bleeding branch, exiting build before compressing";
@@ -302,8 +303,7 @@ else
     LIBS=$(ls $OUTPUT_FOLDER)
     LIBS=$(echo "$LIBS" | tr '\n' ' ')
 fi
-    
-CUR_BRANCH="master";
+
 if [ -z "${RELEASE+x}" ]; then
     if [ "$GITHUB_ACTIONS" = true ]; then
         CUR_BRANCH="${GITHUB_REF##*/}"
@@ -313,9 +313,6 @@ if [ -z "${RELEASE+x}" ]; then
 else
     CUR_BRANCH="$RELEASE"
 fi
-
-
-
 
 TARBALL=openFrameworksLibs_${CUR_BRANCH}_$TARGET_$OPT$ARCH$BUNDLE.tar.bz2
 if [ "$TARGET" == "msys2" ]; then
