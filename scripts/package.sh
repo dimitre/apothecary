@@ -268,24 +268,30 @@ if  type "ccache" > /dev/null; then
     echo $(ccache -s)
 fi
 CUR_BRANCH="master";
-if [[ ("${GITHUB_REF##*/}" == "master" || "${GITHUB_REF##*/}" == "bleeding" || "${GITHUB_REF##*/}" == "latest") && -z "${GITHUB_HEAD_REF}" ]] 
+if [[ ( "${GITHUB_REF##*/}" == "master" || "${GITHUB_REF##*/}" == "bleeding" || "${GITHUB_REF##*/}" == "latest" ) && -z "${GITHUB_HEAD_REF}" ]] \
     || [[ "${GITHUB_REF}" == refs/tags/* ]]; then
 
-        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "On a tag - proceeding with tag-specific build steps"
-            RELEASE="${GITHUB_REF##*/}"
-            CUR_BRANCH="$RELEASE"
-        else
-            echo "On Master or Bleeding branch - proceeding with branch-specific build steps"
-            CUR_BRANCH="latest"
-            RELEASE="latest"
-        fi
-else
-    echo "This is a PR or not master/bleeding branch, exiting build before compressing";
-    if [ -z "${RELEASE+x}" ]; then
-        exit 0
+    # Check if we are on a tag
+    if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+        echo "On a tag - proceeding with tag-specific build steps"
+        RELEASE="${GITHUB_REF##*/}"  # Use tag name as the release
+        CUR_BRANCH="$RELEASE"
+    else
+        echo "On Master, Bleeding, or Latest branch - proceeding with branch-specific build steps"
+        CUR_BRANCH="latest"
+        RELEASE="latest"
     fi
+
+else
+    echo "This is a PR or not on master/bleeding branch; exiting build before compressing."
+    # Exit early if this is a PR or a branch we don't want to build
+    exit 0
 fi
+
+# Output variables for verification (optional)
+echo "Release: $RELEASE"
+echo "Current Branch: $CUR_BRANCH"
+
 
 if [ -z ${APPVEYOR+x} ]; then
     if [[ $TRAVIS_SECURE_ENV_VARS == "false" ]] && [[ -z "${GA_CI_SECRET}" ]]; then
