@@ -259,14 +259,17 @@ if [ -z "$FORMULAS" ]; then
     exit 0
 fi
 
-
-# if [ "$TRAVIS" = true ] && [ "$TARGET" == "emscripten" ]; then
-#     docker cp emscripten:$CCACHE_DOCKER /home/travis/.ccache
-# fi
+if [ -z ${APPVEYOR+x} ]; then
+    if [[ $TRAVIS_SECURE_ENV_VARS == "false" ]] && [[ -z "${GA_CI_SECRET}" ]]; then
+        echo "No secure vars set so exiting before compressing";
+        exit 0
+    fi
+fi
 
 if  type "ccache" > /dev/null; then
     echo $(ccache -s)
 fi
+
 CUR_BRANCH="master";
 if [[ ( "${GITHUB_REF##*/}" == "master" || "${GITHUB_REF##*/}" == "bleeding" || "${GITHUB_REF##*/}" == "latest" ) && -z "${GITHUB_HEAD_REF}" ]] \
     || [[ "${GITHUB_REF}" == refs/tags/* ]]; then
@@ -288,18 +291,6 @@ else
     exit 0
 fi
 
-# Output variables for verification (optional)
-echo "Release: $RELEASE"
-echo "Current Branch: $CUR_BRANCH"
-
-
-if [ -z ${APPVEYOR+x} ]; then
-    if [[ $TRAVIS_SECURE_ENV_VARS == "false" ]] && [[ -z "${GA_CI_SECRET}" ]]; then
-        echo "No secure vars set so exiting before compressing";
-        exit 0
-    fi
-fi
-
 echo "Compressing libraries from $OUTPUT_FOLDER"
 if [ "$TRAVIS" = true  -o "$GITHUB_ACTIONS" = true ] && [ "$TARGET" == "emscripten" ]; then
     LIBSX=$(docker exec -i emscripten sh -c "cd $OUTPUT_FOLDER; ls")
@@ -319,6 +310,11 @@ if [ -z "${RELEASE+x}" ]; then
 else
     CUR_BRANCH="$RELEASE"
 fi
+
+# Output variables for verification (optional)
+echo "Release: [$RELEASE]"
+echo "Current Branch: [$CUR_BRANCH]"
+
 
 TARBALL=openFrameworksLibs_${CUR_BRANCH}_$TARGET_$OPT$ARCH$BUNDLE.tar.bz2
 if [ "$TARGET" == "msys2" ]; then
