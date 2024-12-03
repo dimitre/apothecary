@@ -31,6 +31,12 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+      #with:
+      #  msbuild-architecture: arm64
+        
     - name: Setup msys2
       uses: msys2/setup-msys2@v2
       with:
@@ -51,10 +57,6 @@ jobs:
           mingw-w64-x86_64-make
     - name: Clone repository
       uses: actions/checkout@v4
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
-      with:
-        msbuild-architecture: arm64
       
     - name: Determine Release
       id: vars
