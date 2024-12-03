@@ -7,7 +7,7 @@ FORMULA_TYPES=( "osx" "vs" "ios" "watchos" "catos" "xros" "tvos" "android" "emsc
 FORMULA_DEPENDS=(  ) 
 
 # define the version
-VER=10.2.1
+VER=11.0.2
 
 # tools for git use
 GIT_URL=https://github.com/fmtlib/fmt
