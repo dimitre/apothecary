@@ -10,23 +10,24 @@ FORMULA_TYPES=( "osx" "vs" "ios" "watchos" "catos" "xros" "tvos" "vs" "android" 
 FORMULA_DEPENDS=( "zlib" "libpng" "brotli" )
 
 # define the version
-VER=2.13.2
-BUILD=1
-FVER=213
-BUILD_ID=1
-DEFINES=""
+#VER=2.13.3
+#BUILD=1
+#FVER=213
+#BUILD_ID=1
+#DEFINES=""
 
-GIT_VER=VER-2-13-2
+#GIT_VER=VER-2-13-3
+GIT_VER=master
 
 # tools for git use
-GIT_URL=https://git.savannah.gnu.org/r/freetype/freetype2.git
-GIT_TAG=VER-2-13
-URL=http://download.savannah.nongnu.org/releases/freetype
-MIRROR_URL=https://mirror.ossplanet.net/nongnu/freetype
-GIT_HUB=https://github.com/freetype/freetype/tags
-GIT_HUB_URL=https://github.com/freetype/freetype/archive/refs/tags/VER-2-13-2.tar.gz
-
-
+# GIT_URL=https://git.savannah.gnu.org/r/freetype/freetype2.git
+# GIT_URL=https://gitlab.freedesktop.org/freetype/freetype
+# GIT_TAG=VER-2-13
+# URL=http://download.savannah.nongnu.org/releases/freetype
+# MIRROR_URL=https://mirror.ossplanet.net/nongnu/freetype
+# GIT_HUB=https://github.com/freetype/freetype/tags
+# GIT_HUB_URL=https://github.com/freetype/freetype/archive/refs/tags/VER-2-13-2.tar.gz
+GIT_HUB_URL=https://gitlab.freedesktop.org/freetype/freetype/-/archive/${GIT_VER}/freetype-${GIT_VER}.tar.gz
 
 # download the source code and unpack it into LIB_NAME
 function download() {
