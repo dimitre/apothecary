@@ -77,7 +77,13 @@ jobs:
 
       - name: Script Install and Build
         shell: bash
+        if: ${{matrix.configuration.libs}} == 'aarch64'
         run: ./scripts/$TARGET/install_and_build.sh
+
+      - name: Script Install
+        shell: bash
+        if: ${{matrix.configuration.libs}} != 'aarch64'
+        run: ./scripts/$TARGET/install.sh
 
       - name: Update Release
         uses: johnwbyrd/update-release@v1.0.0
