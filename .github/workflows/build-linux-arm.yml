@@ -12,12 +12,12 @@ jobs:
     strategy:
       matrix:
         cfg:
-          - {
-              libs: armv6l,
-              arch: armhf,
-              suffix: arm-linux-gnueabihf,
-              alladdons: 1,
-            }
+          # - {
+          #     libs: armv6l,
+          #     arch: armhf,
+          #     suffix: arm-linux-gnueabihf,
+          #     alladdons: 1,
+          #   }
           - {
               libs: aarch64,
               arch: arm64,
