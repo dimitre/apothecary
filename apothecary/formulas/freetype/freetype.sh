@@ -27,18 +27,22 @@ GIT_URL=https://gitlab.freedesktop.org/freetype/freetype
 # MIRROR_URL=https://mirror.ossplanet.net/nongnu/freetype
 # GIT_HUB=https://github.com/freetype/freetype/tags
 # GIT_HUB_URL=https://github.com/freetype/freetype/archive/refs/tags/VER-2-13-2.tar.gz
-GIT_HUB_URL=https://gitlab.freedesktop.org/freetype/freetype/-/archive/${GIT_VER}/freetype-${GIT_VER}.tar.gz
+# GIT_HUB_URL=https://gitlab.freedesktop.org/freetype/freetype/-/archive/${GIT_VER}/freetype-${GIT_VER}.tar.gz
 
 # download the source code and unpack it into LIB_NAME
 function download() {
 	echo "Downloading freetype-$GIT_VER"
-	echo "GIT_HUB_URL ${GIT_HUB_URL}"
-	echo "DOWN ${DOWNLOADER_SCRIPT}"
-	. "$DOWNLOADER_SCRIPT" downloader $GIT_HUB_URL
 
-	tar -xzf freetype-$GIT_VER.tar.gz
-	mv freetype-$GIT_VER freetype
-	rm freetype-$GIT_VER*.tar.gz
+	# git clone --branch $GIT_TAG --depth=1 $GIT_URL
+	git clone --depth=1 $GIT_URL
+
+	# echo "GIT_HUB_URL ${GIT_HUB_URL}"
+	# echo "DOWN ${DOWNLOADER_SCRIPT}"
+	# . "$DOWNLOADER_SCRIPT" downloader $GIT_HUB_URL
+
+	# tar -xzf freetype-$GIT_VER.tar.gz
+	# mv freetype-$GIT_VER freetype
+	# rm freetype-$GIT_VER*.tar.gz
 }
 
 # prepare the build environment, executed inside the lib src dir
