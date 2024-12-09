@@ -33,10 +33,11 @@ jobs:
       # CMAKE_FIND_ROOT_PATH: /usr/${{matrix.configuration.prefix}}
 
     steps:
-      # - name: check apt sources
-      #   run: |
-      #     cat config/crosscomp-sources.list
-      #     cat /etc/apt/sources.list
+      - name: check apt sources
+        run: |
+          dpkg --print-foreign-architectures
+          # cat config/crosscomp-sources.list
+          # cat /etc/apt/sources.list
 
       - name: setup deb822 repos
         run: |
