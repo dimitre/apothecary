@@ -27,9 +27,10 @@ URL=https://www.music.mcgill.ca/~gary/rtaudio/release/
 # download the source code and unpack it into LIB_NAME
 function download() {
 	#curl -O https://www.music.mcgill.ca/~gary/rtaudio/release/rtaudio-$VER.tar.gz
+	echo git clone https://github.com/thestk/rtaudio.git --depth 1 --branch ${GIT_TAG}
 	. "$DOWNLOADER_SCRIPT"
 	# downloader ${URL}/rtaudio-${VER}.tar.gz
-	git clone https://github.com/thestk/rtaudio.git --depth 1 --branch ${VER}
+	git clone https://github.com/thestk/rtaudio.git --depth 1 --branch ${GIT_TAG}
 	# downloader ${GIT_URL}/archive/refs/tags/${VER}.tar.gz
 	# tar -xf ${VER}.tar.gz
 	# mv rtaudio-${VER} rtaudio
