@@ -22,17 +22,18 @@ jobs:
       ARCH: ${{matrix.configuration.libs}}
       # MULTISTRAP_ARCH: ${{matrix.configuration.multistrap_arch}}
       TARGET: linux${{matrix.configuration.libs}}
-      WORKDIR: "/home/runner/work/apothecary/apothecary"
-      SYSROOT: "/home/runner/work/apothecary/apothecary/raspbian"
-      TOOLCHAIN_ROOT: "/home/runner/work/apothecary/apothecary/raspbian"
+      WORKDIR: "./apothecary"
+      SYSROOT: "./apothecary/raspbian"
+      # TOOLCHAIN_ROOT: "/home/runner/work/apothecary/apothecary/raspbian"
       TOOLCHAIN_PREFIX: ${{matrix.configuration.prefix}}
       CMAKE_CXX_COMPILER: ${{matrix.configuration.prefix}}-g++
       CMAKE_C_COMPILER: ${{matrix.configuration.prefix}}-gcc
 
       CMAKE_CROSSCOMPILING: TRUE
       TOOLCHAIN: ${{matrix.configuration.prefix}}-gcc
-      CMAKE_SYSROOT: ./raspbian
+      CMAKE_SYSROOT: ./apothecary/raspbian
       CMAKE_CXX_COMPILER_LAUNCHER: ccache
+      CMAKE_FIND_ROOT_PATH: /usr/${{matrix.configuration.prefix}}
 
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +55,7 @@ jobs:
       - name: Cache raspbian folder
         uses: actions/cache@v4
         with:
-          path: ./raspbian
+          path: ./apothecary/raspbian
           key: raspbian-cache-2
 
       - name: Check if folder exists
