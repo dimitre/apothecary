@@ -40,7 +40,7 @@ jobs:
 
       - name: Update Apt
         run: |
-          # sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
           sudo apt update
 
       - uses: actions/checkout@v4
