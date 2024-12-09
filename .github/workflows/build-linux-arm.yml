@@ -6,17 +6,14 @@ on:
   pull_request:
     paths-ignore:
       - "**/README.md"
+
 jobs:
   build-rpi:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
         configuration:
-          # - {
-          #     libs: armv6l,
-          #     arch: armhf,
-          #     prefix: arm-linux-gnueabihf
-          #   }
+          - { libs: armv6l, arch: armhf, prefix: arm-linux-gnueabihf }
           - { libs: aarch64, arch: arm64, prefix: aarch64-linux-gnu }
     env:
       ARCH: ${{matrix.configuration.libs}}
