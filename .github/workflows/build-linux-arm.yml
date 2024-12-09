@@ -11,27 +11,34 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        cfg:
+        configuration:
           # - {
           #     libs: armv6l,
           #     arch: armhf,
-          #     suffix: arm-linux-gnueabihf,
+          #     prefix: arm-linux-gnueabihf,
           #     alladdons: 1,
           #   }
           - {
               libs: aarch64,
               arch: arm64,
-              suffix: aarch64-linux-gnu,
+              prefix: aarch64-linux-gnu,
               alladdons: 1,
             }
     env:
-      ARCH: ${{matrix.cfg.libs}}
-      # MULTISTRAP_ARCH: ${{matrix.cfg.multistrap_arch}}
-      TARGET: linux${{matrix.cfg.libs}}
+      ARCH: ${{matrix.configuration.libs}}
+      # MULTISTRAP_ARCH: ${{matrix.configuration.multistrap_arch}}
+      TARGET: linux${{matrix.configuration.libs}}
       WORKDIR: "/home/runner/work/apothecary/apothecary"
       SYSROOT: "/home/runner/work/apothecary/apothecary/raspbian"
       TOOLCHAIN_ROOT: "/home/runner/work/apothecary/apothecary/raspbian"
-      TOOLCHAIN_PREFIX: ${{matrix.cfg.suffix}}
+      TOOLCHAIN_PREFIX: ${{matrix.configuration.prefix}}
+      CMAKE_CXX_COMPILER: ${{matrix.configuration.prefix}}-g++
+      CMAKE_C_COMPILER: ${{matrix.configuration.prefix}}-gcc
+
+      CMAKE_CROSSCOMPILING: TRUE
+      TOOLCHAIN: ${{matrix.configuration.prefix}}-gcc
+      CMAKE_SYSROOT: ./raspbian
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
 
     steps:
       - uses: actions/checkout@v4
@@ -39,9 +46,16 @@ jobs:
       - name: Cache Packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: multistrap unzip gcc-${{matrix.cfg.suffix}} g++-${{matrix.cfg.suffix}}
+          packages: multistrap unzip gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
           # coreutils gperf build-essential pkgconf rsync
           version: 1.0
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2.14
+        with:
+          # key: ${{ matrix.os }}-ccache
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('*.json') }}
+          # key: ${{ matrix.configuration.prefix }}
 
       - name: Cache raspbian folder
         uses: actions/cache@v4
@@ -78,7 +92,7 @@ jobs:
           tag: nightly
           release: nightly
           prerelease: false
-          files: out/openFrameworksLibs_master_linux${{matrix.cfg.libs}}.tar.bz2
+          files: out/openFrameworksLibs_master_linux${{matrix.configuration.libs}}.tar.bz2
         if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' # && github.ref == 'refs/heads/master'
 
 
