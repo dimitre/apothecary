@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         configuration:
-          - { libs: armv6l, arch: armhf, prefix: arm-linux-gnueabihf }
+          # - { libs: armv6l, arch: armhf, prefix: arm-linux-gnueabihf }
           - { libs: aarch64, arch: arm64, prefix: aarch64-linux-gnu }
     env:
       ARCH: ${{matrix.configuration.libs}}
@@ -76,14 +76,14 @@ jobs:
           mv cross-pi* raspbian
 
       - name: Script Install and Build
-        if: ${{matrix.configuration.libs}} == 'aarch64'
+        # if: ${{matrix.configuration.libs}} == 'aarch64'
         shell: bash
         run: ./scripts/$TARGET/install_and_build.sh
 
-      - name: Script Install
-        if: ${{matrix.configuration.libs}} != 'aarch64'
-        shell: bash
-        run: ./scripts/$TARGET/install.sh
+      # - name: Script Install
+      #   if: ${{matrix.configuration.libs}} != 'aarch64'
+      #   shell: bash
+      #   run: ./scripts/$TARGET/install.sh
 
       - name: Update Release
         uses: johnwbyrd/update-release@v1.0.0
