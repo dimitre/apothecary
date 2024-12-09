@@ -11,28 +11,28 @@ trapError() {
 	exit 1
 }
 
-sudo apt-get install -y aptitude
-sudo aptitude install -y gperf
+# sudo apt-get install -y aptitude
+# sudo aptitude install -y gperf
 
 ROOT=/home/runner/work/apothecary/apothecary
 echo $ROOT
 cd $ROOT
-RASP="$ROOT/raspbian"
+# RASP="$ROOT/raspbian"
 
-PATH=$RASP/bin:$PATH
-LD_LIBRARY_PATH=$RASP/lib:$LD_LIBRARY_PATH
+# PATH=$RASP/bin:$PATH
+# LD_LIBRARY_PATH=$RASP/lib:$LD_LIBRARY_PATH
 
-export AR="aarch64-linux-gnu-gcc-ar"
-export CC="aarch64-linux-gnu-gcc"
-export CXX="aarch64-linux-gnu-g++"
-export CPP="aarch64-linux-gnu-cpp"
-export FC="aarch64-linux-gnu-gfortran"
-export RANLIB="aarch64-linux-gnu-gcc-ranlib"
-export LD="$CXX"
+# export AR="aarch64-linux-gnu-gcc-ar"
+# export CC="aarch64-linux-gnu-gcc"
+# export CXX="aarch64-linux-gnu-g++"
+# export CPP="aarch64-linux-gnu-cpp"
+# export FC="aarch64-linux-gnu-gfortran"
+# export RANLIB="aarch64-linux-gnu-gcc-ranlib"
+# export LD="$CXX"
 
-GCCPATH="$RASP/libexec/gcc/aarch64-linux-gnu/10.3.1"
-export ARFLAGS="--plugin $GCCPATH/liblto_plugin.so"
-export RANLIBFLAGS="--plugin $GCCPATH/liblto_plugin.so"
+# GCCPATH="$RASP/libexec/gcc/aarch64-linux-gnu/10.3.1"
+# export ARFLAGS="--plugin $GCCPATH/liblto_plugin.so"
+# export RANLIBFLAGS="--plugin $GCCPATH/liblto_plugin.so"
 
 #echo "ROOT dir "
 #ls -la $ROOT
