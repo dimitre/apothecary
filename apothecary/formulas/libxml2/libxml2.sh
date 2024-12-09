@@ -280,9 +280,8 @@ function build() {
             find . -name "run*.c" | xargs -r rm
             mkdir -p build_$TYPE
             cd build_$TYPE
-            rm -f CMakeCache.txt *.a *.o
+            # rm -f CMakeCache.txt *.a *.o
             cmake .. \
-                ${DEFS} \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_C_STANDARD=${C_STANDARD} \
                 -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
@@ -291,6 +290,7 @@ function build() {
                 -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
                 -DCMAKE_INSTALL_INCLUDEDIR=include \
                 -DCMAKE_SYSTEM_NAME=$TYPE \
+                ${DEFS} \
                 -DCMAKE_SYSTEM_PROCESSOR=$ABI
 
             cmake --build . --config Release
