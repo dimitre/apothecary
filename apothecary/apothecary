@@ -2571,11 +2571,11 @@ if [ "$TYPE" == "linuxarmv6l" ] || [ "$TYPE" == "linuxaarch64" ] || [ "$TYPE" ==
             export TOOLCHAIN_PREFIX=arm-linux-gnueabihf
         fi
 
-        if [[  -z ${SYSROOT+z} ]]; then
-            echoError "Trying to cross compile but SYSROOT environment variable is not set"
-            echoError "Should be set to root of target OS image"
-            exit 1
-        fi
+        # if [[  -z ${SYSROOT+z} ]]; then
+        #     echoError "Trying to cross compile but SYSROOT environment variable is not set"
+        #     echoError "Should be set to root of target OS image"
+        #     exit 1
+        # fi
         if [[  -z ${TOOLCHAIN_ROOT+z} ]];  then
             echoWarning "Trying to cross compile but TOOLCHAIN_ROOT not set"
             echoWarning "Trying to continue in case PATH is set to correct toolchain"
