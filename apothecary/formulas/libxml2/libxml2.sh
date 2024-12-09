@@ -308,7 +308,6 @@ function build() {
         rm -f CMakeCache.txt *.a *.o
         cmake .. \
             ${DEFS} \
-
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_C_STANDARD=${C_STANDARD} \
             -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
