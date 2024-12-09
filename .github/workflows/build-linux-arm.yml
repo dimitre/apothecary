@@ -16,21 +16,21 @@ jobs:
           # - { libs: armv6l, arch: armhf, prefix: arm-linux-gnueabihf }
           - { libs: aarch64, arch: arm64, prefix: aarch64-linux-gnu }
     env:
-      ARCH: ${{matrix.configuration.libs}}
+      # ARCH: ${{matrix.configuration.libs}}
       # MULTISTRAP_ARCH: ${{matrix.configuration.multistrap_arch}}
-      TARGET: linux${{matrix.configuration.libs}}
-      WORKDIR: "./apothecary"
-      SYSROOT: "./apothecary/raspbian"
+      # TARGET: linux${{matrix.configuration.libs}}
+      # WORKDIR: "./apothecary"
+      # SYSROOT: "./apothecary/raspbian"
       # TOOLCHAIN_ROOT: "/home/runner/work/apothecary/apothecary/raspbian"
-      TOOLCHAIN_PREFIX: ${{matrix.configuration.prefix}}
+      # TOOLCHAIN_PREFIX: ${{matrix.configuration.prefix}}
       CMAKE_CXX_COMPILER: ${{matrix.configuration.prefix}}-g++
       CMAKE_C_COMPILER: ${{matrix.configuration.prefix}}-gcc
 
-      CMAKE_CROSSCOMPILING: TRUE
-      TOOLCHAIN: ${{matrix.configuration.prefix}}-gcc
-      CMAKE_SYSROOT: ./apothecary/raspbian
+      # CMAKE_CROSSCOMPILING: TRUE
+      # TOOLCHAIN: ${{matrix.configuration.prefix}}-gcc
+      # CMAKE_SYSROOT: ./apothecary/raspbian
       CMAKE_CXX_COMPILER_LAUNCHER: ccache
-      CMAKE_FIND_ROOT_PATH: /usr/${{matrix.configuration.prefix}}
+      # CMAKE_FIND_ROOT_PATH: /usr/${{matrix.configuration.prefix}}
 
     steps:
       - uses: actions/checkout@v4
@@ -41,6 +41,12 @@ jobs:
           packages: multistrap unzip gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
           # coreutils gperf build-essential pkgconf rsync
           version: 1.0
+
+      - name: Add foreign architecture
+        shell: bash
+        run: |
+          dpkg --add-architecture arm64
+          apt-get update
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2.14
