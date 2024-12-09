@@ -2576,11 +2576,11 @@ if [ "$TYPE" == "linuxarmv6l" ] || [ "$TYPE" == "linuxaarch64" ] || [ "$TYPE" ==
         #     echoError "Should be set to root of target OS image"
         #     exit 1
         # fi
-        if [[  -z ${TOOLCHAIN_ROOT+z} ]];  then
-            echoWarning "Trying to cross compile but TOOLCHAIN_ROOT not set"
-            echoWarning "Trying to continue in case PATH is set to correct toolchain"
-            echoWarning "If compiling fails try setting TOOLCHAIN_ROOT to root of cross compiler toolchain"
-        fi
+        # if [[  -z ${TOOLCHAIN_ROOT+z} ]];  then
+        #     echoWarning "Trying to cross compile but TOOLCHAIN_ROOT not set"
+        #     echoWarning "Trying to continue in case PATH is set to correct toolchain"
+        #     echoWarning "If compiling fails try setting TOOLCHAIN_ROOT to root of cross compiler toolchain"
+        # fi
     fi
 fi
 
