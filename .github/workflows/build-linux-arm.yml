@@ -36,6 +36,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Cache Packages
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: multistrap unzip gcc-${{matrix.cfg.suffix}} g++-${{matrix.cfg.suffix}} 
+          # coreutils gperf build-essential pkgconf rsync 
+          version: 1.0
+
       - name: Cache raspbian folder
         uses: actions/cache@v4
         with:
