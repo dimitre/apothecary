@@ -7,17 +7,37 @@ on:
     paths-ignore:
       - "**/README.md"
 jobs:
-  build-linux-aarch64:
-    runs-on: ubuntu-latest
+  build-rpi:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        cfg:
+          - {
+              libs: armv7l,
+              arch: armhf,
+              suffix: arm-linux-gnueabihf,
+              alladdons: 1,
+            }
+          - {
+              libs: aarch64,
+              arch: arm64,
+              suffix: aarch64-linux-gnu,
+              alladdons: 1,
+            }
     env:
-      TARGET: linuxaarch64
+      ARCH: ${{matrix.cfg.libs}}
+      # MULTISTRAP_ARCH: ${{matrix.cfg.multistrap_arch}}
+      TARGET: linux${{matrix.cfg.libs}}
       WORKDIR: "/home/runner/work/apothecary/apothecary"
       SYSROOT: "/home/runner/work/apothecary/apothecary/raspbian"
+      TOOLCHAIN_ROOT: "/home/runner/work/apothecary/apothecary/raspbian"
+      TOOLCHAIN_PREFIX: ${{matrix.cfg.suffix}}
+
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       
       - name: Cache raspbian folder
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: /home/runner/work/apothecary/apothecary/raspbian
           key: raspbian-cache-2
