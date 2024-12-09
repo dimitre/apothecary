@@ -17,7 +17,7 @@ GIT_TAG=v$VER
 # download the source code and unpack it into LIB_NAME
 function download() {
     echo "Running: git clone --branch ${GIT_TAG} ${GIT_URL}"
-    git clone --branch ${GIT_TAG} ${GIT_URL}
+    git -c advice.detachedHead=false clone --branch ${GIT_TAG} ${GIT_URL}
     mv  kissfft kiss
 }
 
@@ -54,7 +54,7 @@ function copy() {
 
 # executed inside the lib src dir
 function clean() {
-	
+
 	if [ "$TYPE" == "linux" -o "$TYPE" == "linux64" ] ; then
 		make clean
 		rm -f *.a
