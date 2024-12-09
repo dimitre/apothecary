@@ -45,6 +45,8 @@ function download() {
 
 # executed inside the lib src dir
 function build() {
+	echo "rtAudio.sh build function //// TYPE = ${TYPE}"
+
 	DEFS="
 			-DCMAKE_C_STANDARD=${C_STANDARD} \
 	        -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
