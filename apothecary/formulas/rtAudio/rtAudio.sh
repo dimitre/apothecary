@@ -30,7 +30,8 @@ function download() {
 	echo git -c advice.detachedHead=false clone https://github.com/thestk/rtaudio.git --depth 1 --branch ${GIT_TAG}
 	. "$DOWNLOADER_SCRIPT"
 	# downloader ${URL}/rtaudio-${VER}.tar.gz
-	git -c advice.detachedHead=false clone https://github.com/thestk/rtaudio.git --depth 1 --branch ${GIT_TAG}
+	git -c advice.detachedHead=false clone https://github.com/thestk/rtaudio.git --depth 1 --branch ${GIT_TAG} rtAudio
+
 	# downloader ${GIT_URL}/archive/refs/tags/${VER}.tar.gz
 	# tar -xf ${VER}.tar.gz
 	# mv rtaudio-${VER} rtaudio
