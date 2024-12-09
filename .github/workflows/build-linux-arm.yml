@@ -35,12 +35,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Cache Packages
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: multistrap unzip gcc-${{matrix.cfg.suffix}} g++-${{matrix.cfg.suffix}} 
-          # coreutils gperf build-essential pkgconf rsync 
+          packages: multistrap unzip gcc-${{matrix.cfg.suffix}} g++-${{matrix.cfg.suffix}}
+          # coreutils gperf build-essential pkgconf rsync
           version: 1.0
 
       - name: Cache raspbian folder
@@ -48,7 +48,7 @@ jobs:
         with:
           path: ./raspbian
           key: raspbian-cache-2
-            
+
       - name: Check if folder exists
         id: folder-check
         run: >
@@ -58,7 +58,7 @@ jobs:
           else
             echo "::set-output name=folder-exists::false"
           fi
-          
+
       - name: Download and extract tar file
         if: steps.folder-check.outputs.folder-exists == 'false'
         run: |
@@ -67,18 +67,20 @@ jobs:
           tar xf cross-gcc-*.tar.gz
           rm cross-gcc-*.tar.gz
           mv cross-pi* raspbian
-                    
-      # - name: Script Install and Build
-      #   run: ./scripts/$TARGET/install_and_build.sh
-      # - name: Update Release
-      #   uses: johnwbyrd/update-release@v1.0.0
-      #   with:
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     tag: nightly
-      #     release: nightly
-      #     prerelease: false
-      #     files: out/openFrameworksLibs_master_linuxaarch64.tar.bz2
-      #   if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+      - name: Script Install and Build
+        run: ./scripts/$TARGET/install_and_build.sh
+
+      - name: Update Release
+        uses: johnwbyrd/update-release@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: nightly
+          release: nightly
+          prerelease: false
+          files: out/openFrameworksLibs_master_linux${{matrix.cfg.libs}}.tar.bz2
+        if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' # && github.ref == 'refs/heads/master'
+
 
   # build-linux-arm6:
   #       runs-on: ubuntu-latest
@@ -106,12 +108,6 @@ jobs:
   #           prerelease: false
   #           files: out/openFrameworksLibs_master_linuxarmv6l.tar.bz2
   #         if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && github.ref == 'refs/heads/master'
-
-
-
-
-
-
 #  build-linux-arm7:
 #        runs-on: ubuntu-latest
 #        environment: CI
