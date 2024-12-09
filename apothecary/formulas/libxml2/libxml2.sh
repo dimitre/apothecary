@@ -307,6 +307,7 @@ function build() {
         rm -f CMakeCache.txt *.a *.o
         cmake .. \
             ${DEFS} \
+
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_C_STANDARD=${C_STANDARD} \
             -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
@@ -317,6 +318,7 @@ function build() {
             -DCMAKE_SYSTEM_NAME=$TYPE \
             -DCMAKE_SYSTEM_PROCESSOR=$ABI \
             -DLIBXML2_WITH_LZMA=OFF \
+            -DLIBXML2_WITH_ZLIB=OFF \
             -DBUILD_SHARED_LIBS=OFF \
             -DCMAKE_TOOLCHAIN_FILE=$APOTHECARY_DIR/toolchains/aarch64-linux-gnu.toolchain.cmake \
             -DLIBXML2_WITH_THREAD_ALLOC=OFF
