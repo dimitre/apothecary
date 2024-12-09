@@ -15,15 +15,9 @@ jobs:
           # - {
           #     libs: armv6l,
           #     arch: armhf,
-          #     prefix: arm-linux-gnueabihf,
-          #     alladdons: 1,
+          #     prefix: arm-linux-gnueabihf
           #   }
-          - {
-              libs: aarch64,
-              arch: arm64,
-              prefix: aarch64-linux-gnu,
-              alladdons: 1,
-            }
+          - { libs: aarch64, arch: arm64, prefix: aarch64-linux-gnu }
     env:
       ARCH: ${{matrix.configuration.libs}}
       # MULTISTRAP_ARCH: ${{matrix.configuration.multistrap_arch}}
@@ -75,6 +69,7 @@ jobs:
 
       - name: Download and extract tar file
         if: steps.folder-check.outputs.folder-exists == 'false'
+        shell: bash
         run: |
           cd $WORKDIR
           wget https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/Bookworm/GCC%2014.2.0/Raspberry%20Pi%203A%2B%2C%203B%2B%2C%204%2C%205/cross-gcc-14.2.0-pi_3%2B.tar.gz --no-check-certificate
@@ -83,6 +78,7 @@ jobs:
           mv cross-pi* raspbian
 
       - name: Script Install and Build
+        shell: bash
         run: ./scripts/$TARGET/install_and_build.sh
 
       - name: Update Release
