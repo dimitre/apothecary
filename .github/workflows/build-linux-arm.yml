@@ -82,7 +82,7 @@ jobs:
       - name: Add foreign architecture
         shell: bash
         run: |
-          dpkg --add-architecture arm64
+          sudo dpkg --add-architecture arm64
           # apt-get update
 
       - name: Update Apt
