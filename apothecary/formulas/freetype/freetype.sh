@@ -11,17 +11,17 @@ FORMULA_DEPENDS=( "zlib" "libpng" "brotli" )
 
 # define the version
 VER=2.13.3
-#BUILD=1
-#FVER=213
-#BUILD_ID=1
-#DEFINES=""
+# BUILD=1
+# FVER=213
+# BUILD_ID=1
+# DEFINES=""
 
 #GIT_VER=VER-2-13-3
 GIT_VER=master
 
 # tools for git use
 # GIT_URL=https://git.savannah.gnu.org/r/freetype/freetype2.git
-# GIT_URL=https://gitlab.freedesktop.org/freetype/freetype
+GIT_URL=https://gitlab.freedesktop.org/freetype/freetype
 # GIT_TAG=VER-2-13
 # URL=http://download.savannah.nongnu.org/releases/freetype
 # MIRROR_URL=https://mirror.ossplanet.net/nongnu/freetype
@@ -32,13 +32,13 @@ GIT_HUB_URL=https://gitlab.freedesktop.org/freetype/freetype/-/archive/${GIT_VER
 # download the source code and unpack it into LIB_NAME
 function download() {
 	echo "Downloading freetype-$GIT_VER"
+	echo "GIT_HUB_URL ${GIT_HUB_URL}"
+	echo "DOWN ${DOWNLOADER_SCRIPT}"
+	. "$DOWNLOADER_SCRIPT" downloader $GIT_HUB_URL
 
-	. "$DOWNLOADER_SCRIPT"
-	downloader $GIT_HUB_URL
-	
-	tar -xzf $GIT_VER.tar.gz
+	tar -xzf freetype-$GIT_VER.tar.gz
 	mv freetype-$GIT_VER freetype
-	rm $GIT_VER*.tar.gz
+	rm freetype-$GIT_VER*.tar.gz
 }
 
 # prepare the build environment, executed inside the lib src dir
@@ -52,7 +52,7 @@ function prepare() {
 # executed inside the lib src dir
 function build() {
 	LIBS_ROOT=$(realpath $LIBS_DIR)
-	DEFS="	
+	DEFS="
 		    -DCMAKE_C_STANDARD=${C_STANDARD} \
 		    -DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
 		    -DCMAKE_CXX_STANDARD_REQUIRED=ON \
@@ -60,7 +60,7 @@ function build() {
 			-DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
 			-DCMAKE_INSTALL_INCLUDEDIR=include"
 	if [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
-		
+
 		mkdir -p "build_${TYPE}_${PLATFORM}"
 		cd "build_${TYPE}_${PLATFORM}"
 		rm -f CMakeCache.txt *.a *.o
@@ -71,7 +71,7 @@ function build() {
 
 		LIBPNG_ROOT="$LIBS_ROOT/libpng/"
         LIBPNG_INCLUDE_DIR="$LIBS_ROOT/libpng/include"
-        LIBPNG_LIBRARY="$LIBS_ROOT/libpng/lib/$TYPE/$PLATFORM/libpng.a" 
+        LIBPNG_LIBRARY="$LIBS_ROOT/libpng/lib/$TYPE/$PLATFORM/libpng.a"
 
         LIBBROTLI_ROOT="$LIBS_ROOT/brotli/"
         LIBBROTLI_INCLUDE_DIR="$LIBS_ROOT/brotli/include"
@@ -127,12 +127,12 @@ function build() {
 				-DENABLE_VISIBILITY=OFF \
 				-DCMAKE_VERBOSE_MAKEFILE=${VERBOSE_MAKEFILE} \
 				-DCMAKE_POSITION_INDEPENDENT_CODE=TRUE
-					
+
 		cmake --build . --config Release --target install
-		cd ..	
+		cd ..
 
 	elif [ "$TYPE" == "vs" ] ; then
-		
+
 		echo "building $TYPE | $ARCH | $VS_VER | vs: $VS_VER_GEN"
         echo "--------------------"
         GENERATOR_NAME="Visual Studio ${VS_VER_GEN}"
@@ -147,11 +147,11 @@ function build() {
 
         ZLIB_ROOT="$LIBS_ROOT/zlib/"
         ZLIB_INCLUDE_DIR="$LIBS_ROOT/zlib/include"
-        ZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/$PLATFORM/zlib.lib" 
+        ZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/$PLATFORM/zlib.lib"
 
         LIBPNG_ROOT="$LIBS_ROOT/libpng/"
         LIBPNG_INCLUDE_DIR="$LIBS_ROOT/libpng/include"
-        LIBPNG_LIBRARY="$LIBS_ROOT/libpng/lib/$TYPE/$PLATFORM/libpng.lib" 
+        LIBPNG_LIBRARY="$LIBS_ROOT/libpng/lib/$TYPE/$PLATFORM/libpng.lib"
 
         LIBBROTLI_ROOT="$LIBS_ROOT/brotli/"
         LIBBROTLI_INCLUDE_DIR="$LIBS_ROOT/brotli/include"
@@ -161,7 +161,7 @@ function build() {
 		LIBBROTLI_DEC_LIB="$LIBBROTLI_LIBRARY/brotlidec.lib"
 
 		export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH};${LIBPNG_ROOT}/lib/$TYPE/$PLATFORM;${ZLIB_ROOT}/lib/$TYPE/$PLATFORM;${LIBBROTLI_ROOT}/lib/$TYPE/$PLATFORM"
-		
+
 		BROTLI="
 			-DFT_REQUIRE_BROTLI=ON \
 			-DFT_DISABLE_BROTLI=OFF"
@@ -222,7 +222,7 @@ function build() {
             -DBROTLI_INCLUDE_DIR=${LIBBROTLI_INCLUDE_DIR} \
             -DBROTLI_INCLUDE_DIRS=${LIBBROTLI_INCLUDE_DIR} \
             -DBROTLIDEC_LIBRARIES="${LIBBROTLI_LIBRARY};${LIBBROTLI_ENC_LIB};${LIBBROTLI_DEC_LIB}"
-        cmake --build . --config Release --target install   
+        cmake --build . --config Release --target install
 
         env CXXFLAGS="-DUSE_PTHREADS=1 ${VS_C_FLAGS} ${FLAGS_DEBUG} ${EXCEPTION_FLAGS}"
         cmake .. ${DEFS} \
@@ -336,7 +336,7 @@ function build() {
       	fi
 
         EXTRA_DEFS="
-            -DFT_DISABLE_BROTLI=${NO_LINK_BROTLI} 
+            -DFT_DISABLE_BROTLI=${NO_LINK_BROTLI}
             "
         cmake -D CMAKE_TOOLCHAIN_FILE=${NDK_ROOT}/build/cmake/android.toolchain.cmake \
         	-D CMAKE_OSX_SYSROOT:PATH=${SYSROOT} \
@@ -388,9 +388,9 @@ function build() {
         LIBPNG_ROOT="${LIBS_ROOT}/libpng/"
         LIBPNG_INCLUDE_DIR="${LIBS_ROOT}/libpng/include"
         LIBPNG_LIBRARY="$LIBS_ROOT/libpng/lib/${TYPE}/${PLATFORM}/libpng16.a"
-        
+
 	    export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}:${LIBPNG_ROOT}/lib/$TYPE/$PLATFORM:${ZLIB_ROOT}/lib/$TYPE/$PLATFORM"
-		
+
 		pkg-config --modversion libpng
 
         BROTLI="
@@ -438,7 +438,7 @@ function build() {
 			-DCMAKE_LIBRARY_PATH="${LIBPNG_LIBRARY}:${ZLIB_LIBRARY}" \
             -DBUILD_SHARED_LIBS=OFF \
             -B . \
-            -G 'Unix Makefiles' 
+            -G 'Unix Makefiles'
 
         # cat CMakeCache.txt
         # cat Makefile
@@ -518,19 +518,19 @@ function clean() {
 
 	if [ "$TYPE" == "vs" ] ; then
 		if [ -d "build_${TYPE}_${ARCH}" ]; then
-			rm -r build_${TYPE}_${ARCH}     
+			rm -r build_${TYPE}_${ARCH}
 		fi
 	elif [ "$TYPE" == "android" ] ; then
 		if [ -d "build_${TYPE}_${ABI}" ]; then
-		rm -r build_${TYPE}_${ABI}     
+		rm -r build_${TYPE}_${ABI}
 		fi
 	elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
 		if [ -d "build_${TYPE}_${PLATFORM}" ]; then
-			rm -r build_${TYPE}_${PLATFORM}     
+			rm -r build_${TYPE}_${PLATFORM}
 		fi
 	elif [ "$TYPE" == "emscripten" ] ; then
 		if [ -d "build_${TYPE}" ]; then
-			rm -r build_${TYPE}     
+			rm -r build_${TYPE}
 		fi
 	else
 		rm -f CMakeCache.txt *.a *.o *.lib
