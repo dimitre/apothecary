@@ -39,7 +39,7 @@ jobs:
       - name: Cache raspbian folder
         uses: actions/cache@v4
         with:
-          path: /home/runner/work/apothecary/apothecary/raspbian
+          path: ./raspbian
           key: raspbian-cache-2
             
       - name: Check if folder exists
