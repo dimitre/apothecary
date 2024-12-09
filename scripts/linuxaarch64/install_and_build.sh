@@ -43,8 +43,11 @@ cd $ROOT
 #echo "GCCPATH IS "
 #echo $GCCPATH
 
-echo "calculate formulas"
+echo '##[group]calculate formulas'
 $ROOT/scripts/calculate_formulas.sh
+echo '##[endgroup]'
 
-echo "building"
+echo '##[group]building'
+# echo "building"
 $ROOT/scripts/build.sh
+echo '##[endgroup]'
