@@ -27,14 +27,14 @@ DEPEND_URL=https://github.com/unicode-org/icu/releases/download/release-${ICU_VE
 function download() {
     . "$DOWNLOADER_SCRIPT"
 
-    if [ "$TYPE" == "vs" ]; then  # fix for tar symbol link privildge errors 
+    if [ "$TYPE" == "vs" ]; then  # fix for tar symbol link privildge errors
         DOWNLOAD_TYPE="zip"
         git clone $GIT_URL
         cd libxml2
         git checkout -b v${VER} tags/v${VER}
         cd ../
 
-        if [ ! -d "icu" ] ; then                  
+        if [ ! -d "icu" ] ; then
             downloader "${DEPEND_URL}.${DOWNLOAD_TYPE}"
             unzip -qq "icu4c-${ICU_VER_U}-src.${DOWNLOAD_TYPE}"
             rm -f "icu4c-${ICU_VER_U}-src.${DOWNLOAD_TYPE}"
@@ -45,16 +45,16 @@ function download() {
         cd libxml2
         git checkout -b v${VER} tags/v${VER}
         cd ../
-        if [ ! -d "icu" ] ; then    
+        if [ ! -d "icu" ] ; then
             downloader "${DEPEND_URL}.zip"
             unzip -qq "icu4c-${ICU_VER_U}-src.zip"
             rm -f "icu4c-${ICU_VER_U}-src.zip"
         fi
 
     fi
-       
 
-    
+
+
 }
 
 # prepare the build environment, executed inside the lib src dir
@@ -64,7 +64,7 @@ function prepare() {
     fi
 
     apothecaryDependencies download
-    
+
     apothecaryDepend prepare zlib
     apothecaryDepend build zlib
     apothecaryDepend copy zlib
@@ -105,10 +105,10 @@ function build() {
             -DLIBXML2_WITH_DOC=OFF \
             -DLIBXML2_WITH_SCHEMATRON=OFF"
 
-    if [ "$TYPE" == "vs" ] ; then 
+    if [ "$TYPE" == "vs" ] ; then
         echoVerbose "building $TYPE | $ARCH | $VS_VER | vs: $VS_VER_GEN"
         echoVerbose "--------------------"
-        GENERATOR_NAME="Visual Studio ${VS_VER_GEN}" 
+        GENERATOR_NAME="Visual Studio ${VS_VER_GEN}"
         find . -name "test*.c" | xargs -r rm
         find . -name "run*.c" | xargs -r rm
 
@@ -123,7 +123,7 @@ function build() {
         rm -f CMakeCache.txt *.lib *.o
         EXTRA_DEFS="
             -DCMAKE_INCLUDE_OUTPUT_DIRECTORY=include \
-            -DCMAKE_INSTALL_INCLUDEDIR=include"         
+            -DCMAKE_INSTALL_INCLUDEDIR=include"
         cmake .. ${DEFS} \
             ${EXTRA_DEFS} \
             -DBUILD_SHARED_LIBS=ON \
@@ -163,14 +163,14 @@ function build() {
             -G "${GENERATOR_NAME}"
         cmake --build . --config Release --target install
         cd ..
-            
+
     elif [ "$TYPE" == "android" ]; then
         ./autogen.sh
         cp $FORMULA_DIR/config.h .
 
         find . -name "test*.c" | xargs -r rm
         find . -name "run*.c" | xargs -r rm
-        
+
         source ../../android_configure.sh $ABI cmake
 
         mkdir -p build_${TYPE}_${ABI}
@@ -233,7 +233,7 @@ function build() {
             -DCMAKE_INSTALL_INCLUDEDIR=include \
             -DZLIB_ROOT="$LIBS_ROOT/zlib/" \
             -DZLIB_INCLUDE_DIR="$LIBS_ROOT/zlib/include" \
-            -DZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/$PLATFORM/zlib.a" 
+            -DZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/$PLATFORM/zlib.a"
         cmake --build . --config Release --target install
         cd ..
     elif [ "$TYPE" == "emscripten" ]; then
@@ -270,7 +270,7 @@ function build() {
             -DZLIB_LIBRARY=${ZLIB_LIBRARY} \
             -DCMAKE_CXX_FLAGS="-std=c++${CPP_STANDARD} ${FLAG_RELEASE}" \
             -DCMAKE_C_FLAGS="-std=c${C_STANDARD} ${FLAG_RELEASE}"
-        # cmake --build . --config Release 
+        # cmake --build . --config Release
         $EMSDK/upstream/emscripten/emmake make
         $EMSDK/upstream/emscripten/emmake make install
         cd ..
@@ -292,12 +292,13 @@ function build() {
                 -DCMAKE_INSTALL_INCLUDEDIR=include \
                 -DCMAKE_SYSTEM_NAME=$TYPE \
                 -DCMAKE_SYSTEM_PROCESSOR=$ABI
-                
+
             cmake --build . --config Release
             cd ..
     elif [ "$TYPE" == "linuxarmv6l" ] || [ "$TYPE" == "linuxarmv7l" ] || [ "$TYPE" == "linuxaarch64" ]; then
         source ../../${TYPE}_configure.sh
-        export CFLAGS="$CFLAGS -DTRIO_FPCLASSIFY=fpclassify"
+        # export CFLAGS="$CFLAGS -DTRIO_FPCLASSIFY=fpclassify"
+        export CFLAGS=" -DTRIO_FPCLASSIFY=fpclassify"
         sed -i "s/#if defined.STANDALONE./#if 0/g" trionan.c
         find . -name "test*.c" | xargs -r rm
         find . -name "run*.c" | xargs -r rm
@@ -331,7 +332,7 @@ function build() {
 function copy() {
     # prepare headers directory if needed
     mkdir -p $1/include/libxml
-    
+
     # create a common lib directory path
     mkdir -p $1/lib/$TYPE
     . "$SECURE_SCRIPT"
@@ -340,7 +341,7 @@ function copy() {
         mkdir -p $1/lib/$TYPE/$PLATFORM/
         cp -Rv "build_${TYPE}_${PLATFORM}/Release/include/libxml2/"* $1/include/
         cp -v "build_${TYPE}_${PLATFORM}/Release/libxml2.lib" $1/lib/$TYPE/$PLATFORM/libxml2.lib
-        cp -v "build_${TYPE}_${PLATFORM}/Release/libxml2.dll" $1/lib/$TYPE/$PLATFORM/libxml2.dll     
+        cp -v "build_${TYPE}_${PLATFORM}/Release/libxml2.dll" $1/lib/$TYPE/$PLATFORM/libxml2.dll
         secure $1/lib/$TYPE/$PLATFORM/libxml2.lib
     elif [ "$TYPE" == "android" ] ; then
         mkdir -p $1/lib/$TYPE/$ABI
@@ -391,11 +392,11 @@ function copy() {
 function clean() {
     if [ "$TYPE" == "vs" ] ; then
         if [ -d "build_${TYPE}_${PLATFORM}" ]; then
-            rm -r build_${TYPE}_${PLATFORM}     
+            rm -r build_${TYPE}_${PLATFORM}
         fi
     elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos|emscripten)$ ]]; then
         if [ -d "build_${TYPE}_${PLATFORM}" ]; then
-            rm -r build_${TYPE}_${PLATFORM}     
+            rm -r build_${TYPE}_${PLATFORM}
         fi
     else
         make clean
@@ -412,4 +413,3 @@ function load() {
         echo 0
     fi
 }
-
