@@ -49,7 +49,8 @@ jobs:
       - name: Apt Packages & Cache
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: multistrap unzip gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
+          packages: alsa-utils libasound2-plugins multistrap unzip gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
+
           # coreutils gperf build-essential pkgconf rsync
           version: 1.0
 
