@@ -16,9 +16,9 @@ jobs:
           # - { libs: armv6l, arch: armhf, prefix: arm-linux-gnueabihf }
           - { libs: aarch64, arch: arm64, prefix: aarch64-linux-gnu }
     env:
-      # ARCH: ${{matrix.configuration.libs}}
+      ARCH: ${{matrix.configuration.libs}}
       # MULTISTRAP_ARCH: ${{matrix.configuration.multistrap_arch}}
-      # TARGET: linux${{matrix.configuration.libs}}
+      TARGET: linux${{matrix.configuration.libs}}
       # WORKDIR: "./apothecary"
       # SYSROOT: "./apothecary/raspbian"
       # TOOLCHAIN_ROOT: "/home/runner/work/apothecary/apothecary/raspbian"
@@ -26,10 +26,11 @@ jobs:
       CMAKE_CXX_COMPILER: ${{matrix.configuration.prefix}}-g++
       CMAKE_C_COMPILER: ${{matrix.configuration.prefix}}-gcc
 
+      # CMAKE_CXX_COMPILER_LAUNCHER: ccache
+
       # CMAKE_CROSSCOMPILING: TRUE
       # TOOLCHAIN: ${{matrix.configuration.prefix}}-gcc
       # CMAKE_SYSROOT: ./apothecary/raspbian
-      CMAKE_CXX_COMPILER_LAUNCHER: ccache
       # CMAKE_FIND_ROOT_PATH: /usr/${{matrix.configuration.prefix}}
 
     steps:
@@ -52,18 +53,16 @@ jobs:
           # coreutils gperf build-essential pkgconf rsync
           version: 1.0
 
-      - name: ccache
-        uses: hendrikmuhs/ccache-action@v1.2.14
-        with:
-          # key: ${{ matrix.os }}-ccache
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('*.json') }}
-          # key: ${{ matrix.configuration.prefix }}
+      # - name: ccache
+      #   uses: hendrikmuhs/ccache-action@v1.2.14
+      #   with:
+      #     key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('*.json') }}
 
-      - name: Cache raspbian folder
-        uses: actions/cache@v4
-        with:
-          path: ./apothecary/raspbian
-          key: raspbian-cache-2
+      # - name: Cache raspbian folder
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ./apothecary/raspbian
+      #     key: raspbian-cache-2
 
       # - name: Check if folder exists
       #   id: folder-check
@@ -95,16 +94,15 @@ jobs:
       #   shell: bash
       #   run: ./scripts/$TARGET/install.sh
 
-      - name: Update Release
-        uses: johnwbyrd/update-release@v1.0.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: nightly
-          release: nightly
-          prerelease: false
-          files: out/openFrameworksLibs_master_linux${{matrix.configuration.libs}}.tar.bz2
-        if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' # && github.ref == 'refs/heads/master'
-
+      # - name: Update Release
+      #   uses: johnwbyrd/update-release@v1.0.0
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     tag: nightly
+      #     release: nightly
+      #     prerelease: false
+      #     files: out/openFrameworksLibs_master_linux${{matrix.configuration.libs}}.tar.bz2
+      #   if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' # && github.ref == 'refs/heads/master'
 
   # build-linux-arm6:
   #       runs-on: ubuntu-latest
