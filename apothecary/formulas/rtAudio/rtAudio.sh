@@ -28,11 +28,12 @@ URL=https://www.music.mcgill.ca/~gary/rtaudio/release/
 function download() {
 	#curl -O https://www.music.mcgill.ca/~gary/rtaudio/release/rtaudio-$VER.tar.gz
 	. "$DOWNLOADER_SCRIPT"
-	# downloader ${URL}/rtaudio-${VER}.tar.gz 
-	downloader ${GIT_URL}/archive/refs/tags/$VER.tar.gz
-	tar -xf ${VER}.tar.gz
-	mv rtaudio-${VER} rtaudio
-	rm ${VER}.tar.gz
+	# downloader ${URL}/rtaudio-${VER}.tar.gz
+	git clone https://github.com/thestk/rtaudio.git --depth 1 --branch ${VER}
+	# downloader ${GIT_URL}/archive/refs/tags/${VER}.tar.gz
+	# tar -xf ${VER}.tar.gz
+	# mv rtaudio-${VER} rtaudio
+	# rm ${VER}.tar.gz
 }
 
 # # prepare the build environment, executed inside the lib src dir
@@ -144,8 +145,8 @@ function build() {
 			-DBUILD_TESTING=OFF
 		make
 		make install
-	
-	  # /inst   
+
+	  # /inst
 	elif [ "$TYPE" == "msys2" ] ; then
 		# Compile the program
 		mkdir -p build
@@ -210,7 +211,7 @@ function clean() {
 	if [ "$TYPE" == "vs" ] ; then
 		if [ -d "build_${TYPE}_${ARCH}" ]; then
 		    # Delete the folder and its contents
-		    rm -r build_${TYPE}_${ARCH}	    
+		    rm -r build_${TYPE}_${ARCH}
 		fi
 	else
 		make clean
