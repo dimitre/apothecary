@@ -34,6 +34,15 @@ jobs:
       # CMAKE_FIND_ROOT_PATH: /usr/${{matrix.configuration.prefix}}
 
     steps:
+      - name: Apt Cross
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
+          # multistrap unzip
+          # alsa-utils libasound2-plugins
+          # coreutils gperf build-essential pkgconf rsync
+          version: 1.0
+
       - name: Add foreign architecture
         shell: bash
         run: |
@@ -68,6 +77,11 @@ jobs:
         run: |
           sudo cat /etc/apt/sources.list.d/arm.sources
 
+      - name: Apt-update
+        shell: bash
+        run: |
+          sudo apt update
+
       # - name: Update Apt
       #   run: |
       #     sudo add-apt-repository ppa:ubuntu-toolchain-r/test
@@ -78,7 +92,8 @@ jobs:
       - name: Apt Packages & Cache
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: libasound2t64:${{matrix.configuration.arch}} gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
+          packages: libasound2t64:${{matrix.configuration.arch}}
+          #  gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
           # multistrap unzip
           # alsa-utils libasound2-plugins
           # coreutils gperf build-essential pkgconf rsync
