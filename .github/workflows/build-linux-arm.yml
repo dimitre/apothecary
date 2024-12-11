@@ -34,20 +34,22 @@ jobs:
       # CMAKE_FIND_ROOT_PATH: /usr/${{matrix.configuration.prefix}}
 
     steps:
-      - name: Apt Cross
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
-          # multistrap unzip
-          # alsa-utils libasound2-plugins
-          # coreutils gperf build-essential pkgconf rsync
-          version: 1.0
+      # - name: Apt Cross
+      #   uses: awalsh128/cache-apt-pkgs-action@latest
+      #   with:
+      #     packages: gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
+      #     # multistrap unzip
+      #     version: 1.0
 
       - name: Add foreign architecture
         shell: bash
         run: |
           sudo dpkg --add-architecture ${{matrix.configuration.arch}}
 
+      - name: Is noble?
+        shell: bash
+        run: |
+          cat /etc/os-release
       - name: Edit Ubuntu Sources
         shell: bash
         run: |
