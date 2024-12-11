@@ -68,16 +68,16 @@ jobs:
           URIs: http://ports.ubuntu.com/ubuntu-ports
           # URIs: http://mirror.kumi.systems/ubuntu-ports/
           Architecture: ${{matrix.configuration.arch}}
-          Suites: noble noble-updates noble-backports
+          Suites: noble noble-updates
           Components: main restricted universe multiverse
           Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 
-          Types: deb
-          URIs: http://ports.ubuntu.com/ubuntu-ports
-          Suites: noble-security
-          Components: main restricted universe multiverse
-          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
-          Architecture: ${{matrix.configuration.arch}}
+          # Types: deb
+          # URIs: http://ports.ubuntu.com/ubuntu-ports
+          # Suites: noble-security
+          # Components: main restricted universe multiverse
+          # Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+          # Architecture: ${{matrix.configuration.arch}}
 
           " | sudo tee -a /etc/apt/sources.list.d/arm.sources
 
