@@ -68,8 +68,8 @@ jobs:
           # URIs: http://ports.ubuntu.com/ubuntu-ports
           URIs: http://mirror.kumi.systems/ubuntu-ports/
           Architecture: ${{matrix.configuration.arch}}
-          Suites: noble noble-updates
-          Components: main restricted universe multiverse
+          Suites: noble noble-updates noble-security noble-backports
+          Components: main universe multiverse
           Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 
           # Types: deb
