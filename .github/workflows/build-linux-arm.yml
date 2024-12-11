@@ -42,7 +42,7 @@ jobs:
       - name: Edit Ubuntu Sources
         shell: bash
         run: |
-          sudo sed -i -e 's/Types:\ deb/Types:\ deb\nArchitectures: ${{matrix.configuration.arch}}/g' /etc/apt/sources.list.d/ubuntu.sources
+          sudo sed -i -e 's/Types:\ deb/Types:\ deb\nArchitectures: amd64/g' /etc/apt/sources.list.d/ubuntu.sources
 
       - name: Check
         shell: bash
@@ -53,21 +53,15 @@ jobs:
         shell: bash
         run: |
           sudo touch /etc/apt/sources.list.d/arm.sources
-          sudo echo "
+          echo "
           Types: deb
           URIs: http://ports.ubuntu.com/ubuntu-ports
-          Architectures: arm64
+          Architectures: ${{matrix.configuration.arch}}
           Suites: noble noble-updates noble-back ports
           Components: main restricted universe multiverse
           Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 
-          Types: deb
-          URIs: http://ports.ubuntu.com/ubuntu-ports
-          Architectures: armhf
-          Suites: noble noble-updates noble-backports
-          Components: main restricted universe multiverse
-          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
-          " > /etc/apt/sources.list.d/arm.sources
+          " | sudo tee -a /etc/apt/sources.list.d/arm.sources
 
       - name: Check
         shell: bash
