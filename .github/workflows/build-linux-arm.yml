@@ -26,7 +26,7 @@ jobs:
       CMAKE_CXX_COMPILER: ${{matrix.configuration.prefix}}-g++
       CMAKE_C_COMPILER: ${{matrix.configuration.prefix}}-gcc
 
-      # CMAKE_CXX_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
 
       # CMAKE_CROSSCOMPILING: TRUE
       # TOOLCHAIN: ${{matrix.configuration.prefix}}-gcc
@@ -34,6 +34,11 @@ jobs:
       # CMAKE_FIND_ROOT_PATH: /usr/${{matrix.configuration.prefix}}
 
     steps:
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2.14
+        with:
+          key: ${{matrix.configuration.libs}}
+
       - name: Apt Cross
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
@@ -50,6 +55,7 @@ jobs:
         shell: bash
         run: |
           cat /etc/os-release
+
       - name: Edit Ubuntu Sources
         shell: bash
         run: |
@@ -65,8 +71,8 @@ jobs:
         run: |
           sudo touch /etc/apt/sources.list.d/arm.sources
           echo "Types: deb
-          # URIs: http://ports.ubuntu.com/ubuntu-ports
-          URIs: http://mirror.kumi.systems/ubuntu-ports/
+          URIs: http://ports.ubuntu.com/ubuntu-ports
+          # URIs: http://mirror.kumi.systems/ubuntu-ports/
           Architectures: ${{matrix.configuration.arch}}
           Suites: noble noble-updates noble-security noble-backports
           Components: main universe multiverse
@@ -107,11 +113,6 @@ jobs:
           # alsa-utils libasound2-plugins
           # coreutils gperf build-essential pkgconf rsync
           version: 1.0
-
-      # - name: ccache
-      #   uses: hendrikmuhs/ccache-action@v1.2.14
-      #   with:
-      #     key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('*.json') }}
 
       # - name: Cache raspbian folder
       #   uses: actions/cache@v4
@@ -158,6 +159,16 @@ jobs:
       #     prerelease: false
       #     files: out/openFrameworksLibs_master_linux${{matrix.configuration.libs}}.tar.bz2
       #   if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' # && github.ref == 'refs/heads/master'
+
+      - name: Update Release
+        if: github.repository == 'openframeworks/apothecary' && github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/bleeding')
+        uses: softprops/action-gh-release@v2.1.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ env.RELEASE }}
+          release: ${{ env.RELEASE }}
+          files: out/openFrameworksLibs_${{ env.RELEASE }}_linux${{matrix.configuration.libs}}.tar.bz2
+          # files: xout/openFrameworksLibs_${{ env.RELEASE }}_${{ env.TARGET }}_${{ matrix.bundle }}.tar.bz2
 
   # build-linux-arm6:
   #       runs-on: ubuntu-latest
