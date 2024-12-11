@@ -42,7 +42,7 @@ jobs:
       - name: Apt Cross
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
+          packages: cmake gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
           # multistrap unzip
           version: 1.0
 
