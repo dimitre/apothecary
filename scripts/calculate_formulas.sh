@@ -5,6 +5,8 @@ set -o pipefail
 
 FORMULAS=(
     # Dependencies for other formulas (cairo)
+    "rtAudio"
+
     "pixman"
     "brotli"
     "pkg-config"
@@ -30,7 +32,6 @@ FORMULAS=(
     "pugixml"
     "utf8"
     "videoInput"
-    "rtAudio"
     "tess2"
     "uriparser"
 
@@ -99,7 +100,7 @@ if [ "$BUNDLE" == "1" ]; then
             "curl"
             # "poco"
         )
-    else 
+    else
          FORMULAS=(
         "pixman"
             "pkg-config"
@@ -242,4 +243,3 @@ if [ ! -z "$PLATFORMS_FROM_COMMIT" ]; then
         exit 1
     fi
 fi
-

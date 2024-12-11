@@ -25,6 +25,8 @@ jobs:
       # TOOLCHAIN_PREFIX: ${{matrix.configuration.prefix}}
       CMAKE_CXX_COMPILER: ${{matrix.configuration.prefix}}-g++
       CMAKE_C_COMPILER: ${{matrix.configuration.prefix}}-gcc
+      CXX: ${{matrix.configuration.prefix}}-g++
+      CC: ${{matrix.configuration.prefix}}-gcc
 
       CMAKE_CXX_COMPILER_LAUNCHER: ccache
 
