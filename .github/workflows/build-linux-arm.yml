@@ -65,7 +65,8 @@ jobs:
         run: |
           sudo touch /etc/apt/sources.list.d/arm.sources
           echo "Types: deb
-          URIs: http://ports.ubuntu.com/ubuntu-ports
+          # URIs: http://ports.ubuntu.com/ubuntu-ports
+          URIs: http://mirror.kumi.systems/ubuntu-ports/
           Architecture: ${{matrix.configuration.arch}}
           Suites: noble noble-updates noble-back ports
           Components: main restricted universe multiverse
