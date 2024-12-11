@@ -42,13 +42,17 @@ jobs:
       - name: Edit Ubuntu Sources
         shell: bash
         run: |
-          sudo sed -i -e 's/\n\n/\nArchitectures: ${{matrix.configuration.arch}}\n\n/g' /etc/apt/sources.list.d/ubuntu.sources
-          cat /etc/apt/sources.list.d/ubuntu.sources
+          sudo sed -i -e 's/Types:\ deb/Types:\ deb\nArchitectures: ${{matrix.configuration.arch}}/g' /etc/apt/sources.list.d/ubuntu.sources
+
+      - name: Check
+        shell: bash
+        run: |
+          sudo cat /etc/apt/sources.list.d/ubuntu.sources
 
       - name: Add Crosscompile Sources
         shell: bash
         run: |
-          cat <<EOF > /etc/apt/sources.list.d/arm.sources
+          sudo cat <<EOF > /etc/apt/sources.list.d/arm.sources
           Types: deb
           URIs: http://ports.ubuntu.com/ubuntu-ports
           Architectures: arm64
@@ -64,7 +68,10 @@ jobs:
           Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
           EOF
 
-          cat /etc/apt/sources.list.d/arm.sources
+      - name: Check
+        shell: bash
+        run: |
+          sudo cat /etc/apt/sources.list.d/arm.sources
 
       # - name: Update Apt
       #   run: |
