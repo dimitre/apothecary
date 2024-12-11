@@ -32,8 +32,8 @@ function download() {
 	# downloader ${URL}/rtaudio-${VER}.tar.gz
 	git -c advice.detachedHead=false clone https://github.com/thestk/rtaudio.git --depth 1 --branch ${GIT_TAG} rtAudio
 
-	rm rtAudio/CMakeLists.txt
-	cp CMakeLists.txt rtAudio/CMakeLists.txt
+	# rm rtAudio/CMakeLists.txt
+	# cp CMakeLists.txt rtAudio/CMakeLists.txt
 	# downloader ${GIT_URL}/archive/refs/tags/${VER}.tar.gz
 	# tar -xf ${VER}.tar.gz
 	# mv rtaudio-${VER} rtaudio

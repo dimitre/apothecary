@@ -41,12 +41,12 @@ jobs:
         with:
           key: ${{matrix.configuration.libs}}
 
-      - name: Apt Cross
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: cmake gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
-          # multistrap unzip
-          version: 1.0
+      # - name: Apt Cross
+      #   uses: awalsh128/cache-apt-pkgs-action@latest
+      #   with:
+      #     packages: cmake gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
+      #     # multistrap unzip
+      #     version: 1.0
 
       - name: Add foreign architecture
         shell: bash
@@ -101,7 +101,9 @@ jobs:
       - name: Apt Packages & Cache
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: libasound2t64 libasound2t64:${{matrix.configuration.arch}}
+          # packages: libasound2t64 libasound2t64:${{matrix.configuration.arch}}
+          packages: cmake gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}} libasound2t64 libasound2t64:${{matrix.configuration.arch}}
+
           #  gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
           # multistrap unzip
           # alsa-utils libasound2-plugins
