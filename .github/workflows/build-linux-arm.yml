@@ -34,12 +34,12 @@ jobs:
       # CMAKE_FIND_ROOT_PATH: /usr/${{matrix.configuration.prefix}}
 
     steps:
-      # - name: Apt Cross
-      #   uses: awalsh128/cache-apt-pkgs-action@latest
-      #   with:
-      #     packages: gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
-      #     # multistrap unzip
-      #     version: 1.0
+      - name: Apt Cross
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
+          # multistrap unzip
+          version: 1.0
 
       - name: Add foreign architecture
         shell: bash
