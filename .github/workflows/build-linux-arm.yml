@@ -37,7 +37,34 @@ jobs:
       - name: Add foreign architecture
         shell: bash
         run: |
-          sudo dpkg --add-architecture arm64
+          sudo dpkg --add-architecture ${{matrix.configuration.arch}}
+
+      - name: Edit Ubuntu Sources
+        shell: bash
+        run: |
+          sudo sed -i -e 's/\n\n/\nArchitectures: ${{matrix.configuration.arch}}\n\n/g' /etc/apt/sources.list.d/ubuntu.sources
+          cat /etc/apt/sources.list.d/ubuntu.sources
+
+      - name: Add Crosscompile Sources
+        shell: bash
+        run: |
+          cat <<EOF > /etc/apt/sources.list.d/arm.sources
+          Types: deb
+          URIs: http://ports.ubuntu.com/ubuntu-ports
+          Architectures: arm64
+          Suites: noble noble-updates noble-back ports
+          Components: main restricted universe multiverse
+          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+
+          Types: deb
+          URIs: http://ports.ubuntu.com/ubuntu-ports
+          Architectures: armhf
+          Suites: noble noble-updates noble-backports
+          Components: main restricted universe multiverse
+          Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+          EOF
+
+          cat /etc/apt/sources.list.d/arm.sources
 
       # - name: Update Apt
       #   run: |
@@ -49,9 +76,9 @@ jobs:
       - name: Apt Packages & Cache
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: libasound2t64 multistrap unzip gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
+          packages: libasound2t64:${{matrix.configuration.arch}} gcc-${{matrix.configuration.prefix}} g++-${{matrix.configuration.prefix}}
+          # multistrap unzip
           # alsa-utils libasound2-plugins
-
           # coreutils gperf build-essential pkgconf rsync
           version: 1.0
 
