@@ -11,7 +11,7 @@ FORMULA_DEPENDS=( "zlib" "libpng" )
 
 # define the version
 VER=4.10.0
-      =3
+BUILD_ID=3
 DEFINES=""
 FRAMEWORKS=""
 
