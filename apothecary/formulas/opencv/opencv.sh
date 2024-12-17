@@ -11,7 +11,7 @@ FORMULA_DEPENDS=( "zlib" "libpng" )
 
 # define the version
 VER=4.10.0
-BUILD_ID=3
+      =3
 DEFINES=""
 FRAMEWORKS=""
 
@@ -42,7 +42,7 @@ function download() {
 # prepare the build environment, executed inside the lib src dir
 function prepare() {
 	: # noop
-	
+
 	#no idea why we are building iOS stuff on Windows - but this might fix it
 	if [ "$TYPE" == "vs" ] ; then
 		rm -rf modules/objc_bindings_generator
@@ -59,7 +59,7 @@ function build() {
 
 	if [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos)$ ]]; then
 		# sed -i'' -e  "s|return __TBB_machine_fetchadd4(ptr, 1) + 1L;|return __atomic_fetch_add(ptr, 1L, __ATOMIC_SEQ_CST) + 1L;|" 3rdparty/ittnotify/src/ittnotify/ittnotify_config.h
-		
+
 		ZLIB_ROOT="$LIBS_ROOT/zlib/"
 		ZLIB_INCLUDE_DIR="$LIBS_ROOT/zlib/include"
 		ZLIB_LIBRARY="$LIBS_ROOT/zlib/lib/$TYPE/$PLATFORM/zlib.a"
@@ -87,7 +87,7 @@ function build() {
 		-DPNG_ROOT=${LIBPNG_ROOT} \
 		-DPNG_PNG_INCLUDE_DIR=${LIBPNG_INCLUDE_DIR} \
 		-DPNG_LIBRARY=${LIBPNG_LIBRARY}"
-		
+
 		DEFS="
 		-DBUILD_DOCS=OFF \
 		-DENABLE_BUILD_HARDENING=ON \
@@ -173,9 +173,9 @@ function build() {
 
 		if [[ "$TYPE" =~ ^(tvos)$ ]]; then
 			EXTRA_DEFS="$EXTRA_DEFS -DBUILD_opencv_videoio=OFF -DBUILD_opencv_videostab=OFF"
-		else 
+		else
 			EXTRA_DEFS="-DBUILD_opencv_videoio=ON -DBUILD_opencv_videostab=ON"
-		fi    
+		fi
 
 		FRAMEWORKS="-framework Foundation -framework AVFoundation -framework CoreFoundation -framework CoreVideo"
 
@@ -203,7 +203,7 @@ function build() {
 	elif [ "$TYPE" == "vs" ] ; then
 		echoInfo "building $TYPE | $ARCH | $VS_VER | vs: $VS_VER_GEN"
 		echoInfo "--------------------"
-		GENERATOR_NAME="Visual Studio ${VS_VER_GEN}" 
+		GENERATOR_NAME="Visual Studio ${VS_VER_GEN}"
 		mkdir -p "build_${TYPE}_${PLATFORM}"
 		cd "build_${TYPE}_${PLATFORM}"
 		rm -f CMakeCache.txt || true
@@ -318,10 +318,10 @@ function build() {
 
 			if [[ ${ARCH} == "arm64ec" || "${ARCH}" == "arm64" ]]; then
 				EXTRA_DEFS="-DCV_ENABLE_INTRINSICS=OFF -DBUILD_opencv_rgbd=OFF"
-			else 
+			else
 				EXTRA_DEFS="-DCV_ENABLE_INTRINSICS=ON"
 			fi
-		
+
 		cmake .. ${DEFS} \
 				-A "${PLATFORM}" \
 				-G "${GENERATOR_NAME}" \
@@ -369,7 +369,7 @@ function build() {
 				-DBUILD_WITH_STATIC_CRT=OFF \
 				${CMAKE_WIN_SDK}
 		cmake --build . --target install --config Release
-		cd ..    
+		cd ..
 
 	elif [ "$TYPE" == "android" ]; then
 		export ANDROID_NDK=${NDK_ROOT}
@@ -397,19 +397,19 @@ function build() {
 		elif [ $ABI = "arm64-v8a" ]; then
 			export ARM_MODE="-DANDROID_FORCE_ARM_BUILD=FALSE"
 		elif [ "$ABI" = "x86_64" ]; then
-			export ARM_MODE="-DANDROID_FORCE_ARM_BUILD=FALSE" 
+			export ARM_MODE="-DANDROID_FORCE_ARM_BUILD=FALSE"
 		elif [ "$ABI" = "x86" ]; then
 			export ARM_MODE="-DANDROID_FORCE_ARM_BUILD=FALSE"
 		fi
 
 		export ANDROID_NATIVE_API_LEVEL=21
-	
+
 		echo ${ANDROID_NDK}
 		pwd
 
 		if [[ ${ABI} == "arm64-v8a" || "${ABI}" == "armeabi-v7a" ]]; then
 			EXTRA_DEFS="-DCV_ENABLE_INTRINSICS=OFF -DENABLE_SSE=OFF -DENABLE_SSE2=OFF -DENABLE_SSE3=OFF -DENABLE_SSE41=OFF -DENABLE_SSE42=OFF -DENABLE_SSSE3=OFF"
-		else 
+		else
 			EXTRA_DEFS="-DCV_ENABLE_INTRINSICS=ON -DENABLE_SSE=ON -DENABLE_SSE2=ON -DENABLE_SSE3=ON -DENABLE_SSE41=ON -DENABLE_SSE42=ON -DENABLE_SSSE3=ON"
 		fi
 		rm -f CMakeCache.txt || true
@@ -520,7 +520,7 @@ function build() {
 		LIBPNG_LIBRARY="$LIBS_ROOT/libpng/lib/$TYPE/$PLATFORM/libpng.a"
 
 		export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}:${LIBPNG_ROOT}/lib/$TYPE/$PLATFORM:${ZLIB_ROOT}/lib/$TYPE/$PLATFORM"
-		
+
 		mkdir -p build_${TYPE}_${PLATFORM}
 		cd build_${TYPE}_${PLATFORM}
 		find ./ -name "*.o" -type f -delete
@@ -531,18 +531,22 @@ function build() {
 		$EMSDK/upstream/emscripten/emcmake cmake .. \
 			-B build \
 			-DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
-			-DCMAKE_BUILD_TYPE="Release" \
-			-DCMAKE_INSTALL_LIBDIR="lib" \
 			-DCMAKE_C_STANDARD=${C_STANDARD} \
 			-DCMAKE_CXX_STANDARD=${CPP_STANDARD} \
+			-DCMAKE_CXX_STANDARD_REQUIRED=ON \
+			# -DCMAKE_CXX_FLAGS="-I/${EMSDK}/upstream/emscripten/system/lib/libcxxabi/include/ -msimd128 ${FLAG_RELEASE}" \
+			# -DCMAKE_C_FLAGS="-I/${EMSDK}/upstream/emscripten/system/lib/libcxxabi/include/ -msimd128 ${FLAG_RELEASE}" \
+			-DCMAKE_CXX_FLAGS="-I/${EMSDK}/upstream/emscripten/system/lib/libcxxabi/include/ ${FLAG_RELEASE}" \
+			-DCMAKE_C_FLAGS="-I/${EMSDK}/upstream/emscripten/system/lib/libcxxabi/include/ ${FLAG_RELEASE}" \
+			-DCMAKE_CXX_EXTENSIONS=OFF \
+			-DBUILD_SHARED_LIBS=OFF \
+			-DCMAKE_BUILD_TYPE="Release" \
+			-DCMAKE_INSTALL_LIBDIR="lib" \
 			-DCPU_BASELINE='' \
 			-DCPU_DISPATCH='' \
 			-DCV_TRACE=OFF \
 			-DOPENCV_ENABLE_NONFREE=OFF \
 			-DCMAKE_PREFIX_PATH="${LIBS_ROOT}" \
-			-DCMAKE_C_FLAGS="-I/${EMSDK}/upstream/emscripten/system/lib/libcxxabi/include/ -msimd128 ${FLAG_RELEASE}" \
-			-DCMAKE_CXX_FLAGS="-I/${EMSDK}/upstream/emscripten/system/lib/libcxxabi/include/ -msimd128 ${FLAG_RELEASE}" \
-			-DBUILD_SHARED_LIBS=OFF \
 			-DBUILD_DOCS=OFF \
 			-DBUILD_EXAMPLES=OFF \
 			-DBUILD_FAT_JAVA_LIB=OFF \
@@ -693,7 +697,7 @@ function copy() {
 		secure $1/lib/$TYPE/$PLATFORM/libopencv_core.a opencv.pkl
 
 	elif [ "$TYPE" == "vs" ] ; then
-		 
+
 		cp -Rv "build_${TYPE}_${PLATFORM}/Release/include/opencv2" $1/include/
 		mkdir -p $1/lib/$TYPE/$PLATFORM/
 
@@ -770,15 +774,15 @@ function copy() {
 function clean() {
 	if [ "$TYPE" == "vs" ] ; then
 		if [ -d "build_${TYPE}_${ARCH}" ]; then
-			rm -r build_${TYPE}_${ARCH}     
+			rm -r build_${TYPE}_${ARCH}
 		fi
 	elif [ "$TYPE" == "android" ] ; then
 		if [ -d "build_${TYPE}_${ABI}" ]; then
-		rm -r build_${TYPE}_${ABI}     
+		rm -r build_${TYPE}_${ABI}
 		fi
 	elif [[ "$TYPE" =~ ^(osx|ios|tvos|xros|catos|watchos|emscripten)$ ]]; then
 		if [ -d "build_${TYPE}_${PLATFORM}" ]; then
-			rm -r build_${TYPE}_${PLATFORM}     
+			rm -r build_${TYPE}_${PLATFORM}
 		fi
 	fi
 }
